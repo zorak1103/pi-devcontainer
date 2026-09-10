@@ -76,5 +76,10 @@ expect_match "V8 user" '^vscode$' 'whoami'
 PI_VERSION_EXPECTED="$(grep -o '"PI_VERSION"[^,}]*' "$WS/.devcontainer/devcontainer.json" | grep -o '[0-9][0-9.]*')"
 expect_match "V1 pi version" "^${PI_VERSION_EXPECTED}$" 'pi --version'
 
+# V3 — a project tool is visible to a NON-INTERACTIVE shell, which is how pi's bash
+# tool runs commands. This is the check that catches a shims-not-in-PATH regression.
+expect_match "V3 project tool on PATH" '/shims/jq$' 'command -v jq'
+expect_match "V3 go still resolves"    '^go version' 'go version'
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
