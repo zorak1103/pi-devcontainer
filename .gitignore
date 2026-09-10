@@ -1,0 +1,5 @@
+test/fixture-go/.devcontainer/
+test/fixture-go/.pi/
+test/fixture-go/go.sum
+test/fixture-go/fixture
+.devcontainer/.personal/
