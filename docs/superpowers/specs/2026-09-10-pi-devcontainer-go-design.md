@@ -84,9 +84,11 @@ Supplementary decisions made while designing:
 
 ## 4. Measured findings
 
-These were measured on the target host (Docker 29.7.2, linux/amd64 engine, Windows host,
-`devcontainer` CLI 0.89.0, VS Code 1.137) and must be re-checked when the base image
-changes. Reproduction commands belong in `docs/findings.md`.
+These were measured in the reference environment below and must be re-checked when the base
+image changes. Reproduction commands belong in `docs/findings.md`.
+
+Reference environment: Docker 29.7.2 with a linux/amd64 engine on a Windows host,
+`devcontainer` CLI 0.89.0, VS Code 1.137.
 
 **F1 — The Go image re-adds `SYS_PTRACE` and `seccomp=unconfined`.**
 The image label `devcontainer.metadata` carries, from the Go feature,
@@ -108,7 +110,7 @@ custom Dockerfile. This is accepted. Delve therefore works out of the box, and t
 
 **F2 — `${localEnv:HOME}${localEnv:USERPROFILE}` is broken here.**
 Git Bash sets `HOME` in addition to `USERPROFILE`, so the idiom concatenates both:
-`C:\Users\zorakC:\Users\zorak/.pi/devcontainer`, and container creation fails.
+`C:\Users\<user>C:\Users\<user>/.pi/devcontainer`, and container creation fails.
 Resolution: no host-home mount. `initializeCommand` in array form runs Node (which the CLI
 ships anyway, avoiding all host-shell differences) and copies the personal layer into the
 workspace. Verified: `cwd` is the workspace folder, the copy succeeds, and a missing source
@@ -370,18 +372,21 @@ failing the create.
 
 ### 6.5 `personal/` — template for `~/.pi/devcontainer/`
 
-`settings.json` is the host settings file **minus `shellPath`**, which points at
-`…/git/current/bin/bash.exe` and does not exist in the container; leaving it in would break
-every `bash` tool call.
+`settings.json` is a copy of the developer's global pi settings **minus `shellPath`**. A
+Windows `shellPath` points at a `bash.exe` that does not exist in the container; leaving it
+in would break every `bash` tool call.
 
 ```json
 {
-  "theme": "light",
+  "theme": "dark",
   "defaultProjectTrust": "always",
-  "packages": ["npm:pi-quit-aliases", "npm:tintinweb/pi-subagents", "npm:pi-claude-marketplace"],
-  "modelThinkingLevels": { "bars/claude-sonnet-5": "high" }
+  "packages": ["npm:pi-skills"],
+  "modelThinkingLevels": { "anthropic/claude-sonnet-4-20250514": "high" }
 }
 ```
+
+The `packages` and `modelThinkingLevels` entries are illustrative; each developer brings
+their own.
 
 ```toml
 # mise.toml — cross-project personal tools
@@ -474,7 +479,7 @@ The work is done when these pass, executed inside the running container:
 | # | Check | Expectation |
 |---|---|---|
 | V1 | `pi --version` | `0.85.1` (matches `PI_VERSION`) |
-| V2 | `pi list` | the three packages installed |
+| V2 | `pi list` | the packages declared in the personal layer are installed |
 | V3 | `bash -c 'command -v jq gh typst go'` | all found in a **non-interactive** shell (the shim/`PATH` trap) |
 | V4 | `go build ./...` in a scratch module | succeeds; `/go/pkg/mod` populated |
 | V5 | `grep CapEff /proc/self/status` | `0000000000080000` (only `SYS_PTRACE`) |
