@@ -36,6 +36,9 @@ expect_cmd_fails() { # name command
 
 MOUNTS="/go/pkg/mod /home/vscode/.cache/go-build /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.config /home/vscode/.history"
 
+# Container ID via the container's own hostname — avoids brittle label filtering.
+CID="$(inc 'cat /etc/hostname' | tr -d '\r\n')"
+
 echo "verify: $WS"
 
 # V9 — every volume mount point is owned by vscode and writable (spec F8)
@@ -43,6 +46,30 @@ for m in $MOUNTS; do
   expect_match "V9 owner $m" '^vscode$' "stat -c %U $m"
   expect_match "V9 write $m" '^ok$'     "touch $m/.wtest && rm -f $m/.wtest && echo ok"
 done
+
+# V5 — capability ceiling. Measured on the process pi's tools actually run as (vscode,
+# uid 1000), not on root: a non-root process holds no effective capabilities at all, so
+# CapEff proves nothing on its own. CapBnd is the ceiling that survives any setuid
+# transition, and it is where the --cap-drop=ALL is visible (spec F1).
+expect_match "V5a capability ceiling" '^CapBnd:[[:space:]]+0000000000080000$' 'grep CapBnd /proc/self/status'
+expect_match "V5b no effective caps"  '^CapEff:[[:space:]]+0000000000000000$' 'grep CapEff /proc/self/status'
+
+# V6 — hardening verified negatively: privilege escalation must not work (spec F4)
+expect_cmd_fails "V6 sudo refused" 'sudo -n true'
+
+# V7 — the API key must not be readable from the container configuration (spec F3)
+if docker inspect "$CID" --format '{{json .Config.Env}}' | grep -q ANTHROPIC; then
+  bad "V7 key absent from docker inspect" "no ANTHROPIC entry" "found one"
+else
+  ok "V7 key absent from docker inspect"
+fi
+
+# V7b — but it does reach processes started through the devcontainer CLI or VS Code.
+# Never print the value.
+expect_match "V7b key reaches the container" '^set$' '[ -n "$ANTHROPIC_API_KEY" ] && echo set || echo unset'
+
+# V8 — non-root
+expect_match "V8 user" '^vscode$' 'whoami'
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

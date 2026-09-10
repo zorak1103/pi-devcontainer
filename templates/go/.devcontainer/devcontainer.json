@@ -2,6 +2,19 @@
   "name": "go-pi",
   "build": { "dockerfile": "Dockerfile" },
 
+  "runArgs": ["--cap-drop=ALL", "--security-opt", "no-new-privileges"],
+
+  "containerEnv": {
+    "PI_CODING_AGENT_SESSION_DIR": "${containerWorkspaceFolder}/.pi/sessions",
+    "HISTFILE": "/home/vscode/.history/.bash_history",
+    "LANG": "C.UTF-8",
+    "COLORTERM": "truecolor"
+  },
+
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+  },
+
   "mounts": [
     "source=pi-dc-gomod,target=/go/pkg/mod,type=volume",
     "source=pi-dc-gobuild,target=/home/vscode/.cache/go-build,type=volume",
@@ -9,5 +22,9 @@
     "source=pi-dc-${localWorkspaceFolderBasename}-pinpm,target=/home/vscode/.pi/agent/npm,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-config,target=/home/vscode/.config,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-hist,target=/home/vscode/.history,type=volume"
-  ]
+  ],
+
+  "customizations": {
+    "vscode": { "settings": { "go.toolsManagement.checkForUpdates": "off" } }
+  }
 }
