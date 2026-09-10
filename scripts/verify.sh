@@ -94,5 +94,13 @@ expect_match "V3c personal tool jira" '/shims/jira$' 'command -v jira'
 expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/settings.json'
 expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
 
+# V4 — a real build works and populates the shared module cache
+expect_match "V4 GOMODCACHE"   '^/go/pkg/mod$' 'go env GOMODCACHE'
+# Bind mounts present host files as root-owned; without a safe.directory entry git refuses
+# to run and Go's VCS stamping fails the build.
+expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
+expect_match "V4 go build"     '^ok$'          'go mod tidy >/dev/null 2>&1 && go build ./... && echo ok'
+expect_match "V4 cache filled" '^yes$'         '[ -d /go/pkg/mod/rsc.io ] && echo yes || echo no'
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
