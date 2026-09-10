@@ -2,9 +2,14 @@
   "name": "go-pi",
   "build": { "dockerfile": "Dockerfile" },
 
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": { "version": "22" }
+  },
+
   "runArgs": ["--cap-drop=ALL", "--security-opt", "no-new-privileges"],
 
   "containerEnv": {
+    "PI_VERSION": "0.85.1",
     "PI_CODING_AGENT_SESSION_DIR": "${containerWorkspaceFolder}/.pi/sessions",
     "HISTFILE": "/home/vscode/.history/.bash_history",
     "LANG": "C.UTF-8",
@@ -23,6 +28,8 @@
     "source=pi-dc-${localWorkspaceFolderBasename}-config,target=/home/vscode/.config,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-hist,target=/home/vscode/.history,type=volume"
   ],
+
+  "onCreateCommand": "bash .devcontainer/install-pi.sh",
 
   "customizations": {
     "vscode": { "settings": { "go.toolsManagement.checkForUpdates": "off" } }

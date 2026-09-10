@@ -71,5 +71,10 @@ expect_match "V7b key reaches the container" '^set$' '[ -n "$ANTHROPIC_API_KEY" 
 # V8 — non-root
 expect_match "V8 user" '^vscode$' 'whoami'
 
+# V1 — pi is installed at the pinned version. The expectation is read from the config
+# so the check cannot drift away from the template.
+PI_VERSION_EXPECTED="$(grep -o '"PI_VERSION"[^,}]*' "$WS/.devcontainer/devcontainer.json" | grep -o '[0-9][0-9.]*')"
+expect_match "V1 pi version" "^${PI_VERSION_EXPECTED}$" 'pi --version'
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
