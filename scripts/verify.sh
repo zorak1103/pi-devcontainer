@@ -81,5 +81,18 @@ expect_match "V1 pi version" "^${PI_VERSION_EXPECTED}$" 'pi --version'
 expect_match "V3 project tool on PATH" '/shims/jq$' 'command -v jq'
 expect_match "V3 go still resolves"    '^go version' 'go version'
 
+# V2 — packages declared in the personal layer are installed
+expect_match "V2 packages installed" 'pi-quit-aliases' 'pi list'
+
+# V3b — personal tools are on PATH in a non-interactive shell
+expect_match "V3b personal tool yq" '/shims/yq$' 'command -v yq'
+# jira-cli needed a backend workaround (its binary is named `jira`, not after the repo),
+# so it gets its own check rather than being assumed to work.
+expect_match "V3c personal tool jira" '/shims/jira$' 'command -v jira'
+
+# V2b — the personal layer landed where pi looks for it
+expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/settings.json'
+expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

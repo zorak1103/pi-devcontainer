@@ -1,0 +1,6 @@
+{
+  "theme": "dark",
+  "defaultProjectTrust": "always",
+  "packages": ["npm:pi-quit-aliases"],
+  "modelThinkingLevels": { "anthropic/claude-sonnet-4-20250514": "high" }
+}

@@ -1,0 +1,12 @@
+# Cross-project personal tools. Registry names where they exist, backends otherwise:
+# aqua:, github: (any GitHub release), go:, npm:, pipx:.
+[tools]
+jq = "latest"
+yq = "latest"
+"github-cli" = "latest"
+glab = "latest"
+typst = "latest"
+# Not in the mise registry. The aqua registry knows this project's archive layout;
+# the plain release backend would look for a binary named after the repo and miss
+# the one actually shipped, which is called `jira`.
+"aqua:ankitpokhrel/jira-cli" = "latest"

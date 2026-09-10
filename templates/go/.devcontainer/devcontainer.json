@@ -33,6 +33,7 @@
     "source=pi-dc-${localWorkspaceFolderBasename}-hist,target=/home/vscode/.history,type=volume"
   ],
 
+  "initializeCommand": ["node", ".devcontainer/sync-personal.js"],
   "onCreateCommand": "bash .devcontainer/install-pi.sh",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
