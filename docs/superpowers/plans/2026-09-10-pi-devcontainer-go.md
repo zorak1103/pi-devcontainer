@@ -10,6 +10,11 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-10-pi-devcontainer-go-design.md`
 
+> **Historical document.** This is the plan as written before execution. It was followed
+> task by task, but five checks and one whole step changed when measurements contradicted
+> it — see findings F9–F13 in [docs/findings.md](../../findings.md). The implemented
+> `scripts/verify.sh` has 30 checks, not the 27 planned here.
+
 ## Global Constraints
 
 - Base image: `mcr.microsoft.com/devcontainers/go:1.27-bookworm`.

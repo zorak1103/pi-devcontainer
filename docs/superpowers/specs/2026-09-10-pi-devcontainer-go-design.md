@@ -3,6 +3,13 @@
 Date: 2026-09-10
 Status: Approved (design), not yet implemented
 
+> **Historical document.** This is the design as approved before implementation. Five of its
+> statements were contradicted by measurements taken while building it: the capability check
+> (`CapEff` vs `CapBnd`), `PATH` in `containerEnv`, the `ubi:` backend for `jira-cli`, the
+> assumption that `mise install` may abort the container, and the absence of any git
+> `safe.directory` handling. **[docs/findings.md](../../findings.md) is the current truth**;
+> it records what was measured, including findings F9–F13 which postdate this document.
+
 ## 1. Purpose
 
 Provide a lightly hardened, VS Code–native runtime environment for the
