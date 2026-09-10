@@ -380,13 +380,14 @@ in would break every `bash` tool call.
 {
   "theme": "dark",
   "defaultProjectTrust": "always",
-  "packages": ["npm:pi-skills"],
+  "packages": ["npm:pi-quit-aliases"],
   "modelThinkingLevels": { "anthropic/claude-sonnet-4-20250514": "high" }
 }
 ```
 
 The `packages` and `modelThinkingLevels` entries are illustrative; each developer brings
-their own.
+their own. The package shown is a small public one, chosen so that the shipped template is
+verifiable out of the box.
 
 ```toml
 # mise.toml — cross-project personal tools
