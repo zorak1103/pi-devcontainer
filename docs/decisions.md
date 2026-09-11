@@ -1,7 +1,7 @@
 # Decisions
 
-Each section states the question, what was considered, what was chosen, and — the part
-usually missing from design documents — what the choice costs.
+Each section states the question, what was considered, what was chosen, and what the choice
+costs. That last part is usually missing from design documents.
 
 ## D1 — Where the provider credentials live
 
@@ -13,24 +13,23 @@ container-local volume, which is clean but makes every fresh container a login.
 
 **Cost:** the key is inside the container. A compromised agent can read it. This is accepted
 explicitly, and it is why the threat model below is about blast radius rather than secrecy.
-`remoteEnv` at least keeps it out of `docker inspect` — see [findings.md](findings.md#f3--remoteenv-keeps-the-secret-out-of-docker-inspect).
-See [threat-model.md](threat-model.md) for the consolidated picture.
+`remoteEnv` at least keeps it out of `docker inspect`. See [findings.md](findings.md#f3--remoteenv-keeps-the-secret-out-of-docker-inspect).
+See [threat-model.md](threat-model.md).
 
 ## D2 — What the hardening defends against
 
-**Chosen:** filesystem blast radius plus the cheap container hardening — non-root,
+**Chosen:** filesystem blast radius plus the cheap container hardening: non-root,
 `--cap-drop=ALL`, `no-new-privileges`.
 
 Rejected: network egress filtering. It is the obvious next step and it was declined
-deliberately. Go projects hit it first and hardest — module proxies, private registries,
-`GOPROXY` — and the failure presents as a cryptic timeout in the middle of an agent run
+deliberately. Go projects hit it first and hardest: module proxies, private registries, and
+`GOPROXY` fail in ways that present as a cryptic timeout in the middle of an agent run
 rather than as a clear "blocked". A control that gets disabled after two days of friction is
 worse than no control, because you stop thinking about it. Also rejected: a read-only root
 filesystem, which fights pi's own writes.
 
 **Cost:** an agent that can reach the network can exfiltrate. This setup bounds what a
-misbehaving agent can *touch*, not what it can *tell*. See [threat-model.md](threat-model.md)
-for the consolidated picture.
+misbehaving agent can *touch*, not what it can *tell*. See [threat-model.md](threat-model.md).
 
 ## D3 — How the environment reaches a project
 
@@ -54,7 +53,7 @@ Rejected: one Dev Container Feature per tool, which bakes tools into the image b
 every new tool an image rebuild and has no coverage for niche tools; and hand-written
 `Dockerfile` installs, which means writing download and architecture logic per tool.
 
-This decision carries more weight than it appears to. pi has no MCP — its extension mechanism
+This decision carries more weight than it appears to. pi has no MCP. Its extension mechanism
 is CLI tools with documentation. If adding a tool is expensive, the agent's capabilities
 ossify. mise's `ubi:`/`github:` backend installs any GitHub release, so there is no ceiling.
 
@@ -68,7 +67,7 @@ make rebuilds fast.
 Rejected: mounting the host `~/.pi/agent` read-only. It needs no maintenance, but read-only
 breaks `pi install` and `pi update`, a Windows `shellPath` in those settings points at a
 `bash.exe` that does not exist in the container, and `auth.json` would have to be actively
-masked — an omission there leaks credentials silently. Also rejected: committing personal
+masked; an omission there leaks credentials silently. Also rejected: committing personal
 preferences into each project repository.
 
 **Cost:** a second settings file to maintain. In exchange the host configuration is never
@@ -113,8 +112,7 @@ and tokens.
 
 **Cost:** the shared module cache is a cross-project write path. A malicious agent in one
 project could in principle poison it for another. The cache is content-addressed and `go.sum`
-catches tampering, which is what makes the trade acceptable — but it is a trade, not a
-non-issue.
+catches tampering, which is what makes the trade acceptable. It is a trade, not a non-issue.
 
 Measured payoff: a full container rebuild with warm caches takes about ten seconds.
 

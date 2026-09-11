@@ -52,7 +52,7 @@ mounting the pi configuration is the point when your goal is "my host pi setup, 
 - **An isolated pi runtime.** `pidc` installs Node and pi into `/opt/pi` so they cannot
   collide with the project's toolchain. Here the same separation comes from the Node feature
   plus a pinned pi version, with `install-pi.sh` deliberately written as a standalone script
-  so it can become a Feature's `install.sh` later — which is `pidc`'s architecture, arrived at
+  so it can become a Feature's `install.sh` later, which is `pidc`'s architecture, arrived at
   from the other direction.
 - **Packaging pi as a Dev Container Feature.** The right end state; deferred until the rest
   is proven.
@@ -74,13 +74,13 @@ mounting the pi configuration is the point when your goal is "my host pi setup, 
   and it cannot leak `auth.json` by omission.
 - **Windows path patching of `settings.json`, monorepo-root mounts, and the
   `/mnt/host/<drive>` symlink fix.** All three exist to support extensions referenced by
-  local host paths. Using pi *packages* instead — portable specs that install inside the
-  container — removes the need for all of them. This was the single largest simplification.
+  local host paths. Using pi *packages* instead (portable specs that install inside the
+  container) removes the need for all of them. This was the single largest simplification.
 
 ## The honest summary
 
 Two projects, two problems. `pi-devcontainers` answers "how do I run my existing host pi
-setup on Linux without touching my repositories", and for that its design is coherent —
+setup on Linux without touching my repositories", and for that its design is coherent,
 including the parts that look heavy from outside. This project answers "how do I give an
 agent a hardened, VS Code–native environment I can extend freely", and for that the same
 constraint would have been a liability.

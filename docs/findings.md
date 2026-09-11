@@ -38,8 +38,8 @@ The common cross-platform idiom for the host home directory assumes exactly one 
 variables is empty. Git Bash sets `HOME` **in addition to** `USERPROFILE`, so the mount source
 became `C:\Users\<user>C:\Users\<user>/.pi/devcontainer` and container creation failed.
 
-Resolution: no host-home mount at all. `initializeCommand` runs Node — which the devcontainer
-CLI ships anyway — in array form, sidestepping both host-shell differences and shell quoting.
+Resolution: no host-home mount at all. `initializeCommand` runs Node, which the devcontainer
+CLI ships anyway, in array form, sidestepping both host-shell differences and shell quoting.
 
 ## F3 — `remoteEnv` keeps the secret out of `docker inspect`
 
@@ -76,7 +76,7 @@ docker run --rm mcr.microsoft.com/devcontainers/go:1.27-bookworm \
 ```
 
 `go1.27.1`, and `gopls`, `dlv`, `golangci-lint`, `staticcheck` in `/go/bin`, `GOPATH=/go`,
-`git` present. **`node` and `npm` are absent** — the image ships a prepared `nvm` with no Node
+`git` present. **`node` and `npm` are absent**: the image ships a prepared `nvm` with no Node
 version installed. pi needs Node, so the Node feature is not optional.
 
 ## F6 — Availability of images, features and tools
@@ -93,7 +93,7 @@ In the mise registry: `jq`, `yq`, `glab`, `typst`, `golangci-lint`, `ripgrep`, a
 ## F7 — mise does not read `go.mod` by default
 
 Idiomatic version files are disabled by default, and `go.mod`'s `go X.Y` directive is a
-minimum rather than a pin — mise deprecated it as a version source. Declare the project's Go
+minimum rather than a pin; mise deprecated it as a version source. Declare the project's Go
 version explicitly in `mise.toml`.
 
 ## F8 — Named volumes on paths absent from the image are created root-owned
@@ -109,8 +109,8 @@ drwxr-xr-x 2 root root /go/pkg/mod
 touch: cannot touch '/go/pkg/mod/x': Permission denied
 ```
 
-Docker initialises an empty named volume from the image directory at the mount point —
-including its ownership — but creates that directory as `root` when it does not exist.
+Docker initialises an empty named volume from the image directory at the mount point,
+including its ownership, but creates that directory as `root` when it does not exist.
 Neither `/go/pkg` nor `/home/vscode/.cache` exists in the base image. Combined with F4 there
 is no `sudo` to repair it afterwards, so the module cache, build cache, tool directory and pi
 package directory would all have been unusable.
@@ -148,7 +148,7 @@ CapEff: 0000000000000000
 CapBnd: 0000000000080000
 ```
 
-`CapEff` is zero for any non-root process regardless of hardening — an unhardened container
+`CapEff` is zero for any non-root process regardless of hardening: an unhardened container
 shows the same zero. The bounding set `CapBnd` is where `--cap-drop=ALL` is visible, and it
 is also the ceiling that would survive a setuid transition. The check now asserts both: the
 ceiling is one capability, and the process holds none.
@@ -187,7 +187,7 @@ when the workspace folder sits inside a git repository.
 `ubi:ankitpokhrel/jira-cli` failed with `could not find any files matching [jira-cli*] in the
 downloaded archive file`: the release ships a binary called `jira`, not one named after the
 repository. `mise install` exited non-zero, `set -euo pipefail` propagated it, and
-`postCreateCommand` failed — leaving no usable container.
+`postCreateCommand` failed, leaving no usable container.
 
 Two fixes, both worth having:
 

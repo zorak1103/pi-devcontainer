@@ -1,7 +1,7 @@
 # pi-devcontainer
 
 A VS Code dev container that runs the [pi coding agent](https://pi.dev) in a lightly
-hardened, non-root Linux environment — without restricting anything pi can do. The first
+hardened, non-root Linux environment, without restricting anything pi can do. The first
 target environment is Go.
 
 The agent gets a real toolchain and a workspace it can write to. It does not get your host
@@ -13,8 +13,8 @@ tool is one line and no image rebuild, which matters more than it sounds: pi has
 
 - Docker (Docker Desktop on Windows or macOS)
 - VS Code with the **Dev Containers** extension
-- Git, with Git Bash on Windows — needed for `git clone` anyway, and it's the shell the
-  scripts below run in
+- Git, with Git Bash on Windows (needed for `git clone` anyway, and the shell the scripts
+  below run in)
 - Optional, for the acceptance checks: the [`devcontainer` CLI](https://github.com/devcontainers/cli)
 
 ## Quick start
@@ -25,10 +25,10 @@ cd pi-devcontainer
 ./scripts/init-project.sh /path/to/your/go-project
 ```
 
-(Windows: run these in Git Bash, not PowerShell or cmd — the scripts are `.sh` files.)
+(Windows: run these in Git Bash, not PowerShell or cmd, since the scripts are `.sh` files.)
 
 Add the two lines the script prints to your project's `.gitignore`, set your API key once
-(see [docs/setup-windows.md](docs/setup-windows.md) — on Windows this needs a VS Code
+(see [docs/setup-windows.md](docs/setup-windows.md); on Windows this needs a VS Code
 restart; for OpenRouter or another provider, see [docs/providers.md](docs/providers.md)),
 then open the project in VS Code and choose **Reopen in Container**. In the
 container's terminal:
@@ -38,7 +38,7 @@ pi
 ```
 
 Optionally, create `~/.pi/devcontainer/` for settings, tools and context that follow you
-across projects — [`personal/`](personal/) is a working template. Without it the container
+across projects. [`personal/`](personal/) is a working template. Without it the container
 still comes up, with pi's defaults.
 
 ## What you get
@@ -72,12 +72,11 @@ It must answer without a trust prompt and leave a session file in `.pi/sessions/
 
 ## Security posture
 
-Lightly hardened, and the emphasis is on *lightly* — this bounds the blast radius of a
+Lightly hardened, and the emphasis is on *lightly*: this bounds the blast radius of a
 misbehaving agent, it does not contain a determined attacker. Non-root, capabilities dropped
 to one, `no-new-privileges`, the API key kept out of `docker inspect`, the host home never
-mounted — and, just as deliberately, what none of that protects against: the key still lives
-in the container, and network egress is unrestricted. See [docs/threat-model.md](docs/threat-model.md)
-for the full picture.
+mounted. Just as deliberately out of scope: the key still lives in the container, and
+network egress is unrestricted. See [docs/threat-model.md](docs/threat-model.md).
 
 ## Documentation
 
@@ -98,7 +97,7 @@ because a measurement contradicted a reasonable assumption.
 ## Credits
 
 - [pi](https://pi.dev) by earendil-works.
-- [`marcfargas/pi-devcontainers`](https://github.com/marcfargas/pi-devcontainers) (MIT) —
+- [`marcfargas/pi-devcontainers`](https://github.com/marcfargas/pi-devcontainers) (MIT):
   the origin of several ideas here, including the isolated pi runtime and the layered-mount
   approach. It solves a different problem: running pi on a Windows ARM host without an IDE.
   [comparison.md](docs/comparison.md) explains what was adopted and what was not.

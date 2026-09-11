@@ -14,7 +14,7 @@ where a piece of configuration belongs, this table answers it.
 Two properties make this work:
 
 **The personal layer is copied, not mounted.** A read-only mount of a host config directory
-would leave the container unable to write to it — and pi writes: `pi install`, `pi update`,
+would leave the container unable to write to it, and pi writes: `pi install`, `pi update`,
 model catalogs. Copying gives the container a writable copy while the host original stays
 untouched. The copy is refreshed on every container create, so editing the host file and
 rebuilding is the update mechanism.
@@ -43,7 +43,7 @@ Host                                  Container (linux/amd64, user vscode, uid 1
 
 ### Volumes
 
-Shared across all projects — these are caches, and sharing them is the difference between a
+Shared across all projects: these are caches, and sharing them is the difference between a
 ten-second and a five-minute container rebuild:
 
 | Volume | Mount point | Holds |
@@ -52,7 +52,7 @@ ten-second and a five-minute container rebuild:
 | `pi-dc-gobuild` | `~/.cache/go-build` | Go build cache |
 | `pi-dc-mise` | `~/.local/share/mise` | downloaded tools |
 
-Per project, named after the workspace folder — these hold state, and state should not leak
+Per project, named after the workspace folder: these hold state, and state should not leak
 between projects:
 
 | Volume | Mount point | Holds |
@@ -70,7 +70,7 @@ settings would be silently ignored.
 
 **Every volume mount point must exist in the image, owned by `vscode`.** Docker creates a
 missing mount point as `root`, and `no-new-privileges` leaves no `sudo` to repair it. This is
-why there is a `Dockerfile` at all — see [findings.md](findings.md), finding F8. If you add a
+why there is a `Dockerfile` at all (see [findings.md](findings.md), finding F8). If you add a
 volume, add its directory there too.
 
 Known limitation: two projects whose folders share a basename share the "per project"
@@ -93,8 +93,8 @@ Node and the host shell differs per platform. It never fails the container start
 personal layer is a supported configuration.
 
 `PATH` is set in the `Dockerfile`, not in `containerEnv`. Two reasons: `${containerEnv:PATH}`
-is not resolved inside `containerEnv` itself — it is passed through literally and breaks the
-container — and a value baked into the image also applies to a plain `docker exec`.
+is not resolved inside `containerEnv` itself; it is passed through literally and breaks the
+container. A value baked into the image also applies to a plain `docker exec`.
 
 The mise shims directory comes **first** on `PATH`. pi's `bash` tool spawns non-interactive
 shells, where shell-init hooks such as `mise activate` never run. A tool that is only
@@ -106,5 +106,5 @@ knowing: a project that pins Go in `mise.toml` wins over the image's `/usr/local
 
 The container sets `defaultProjectTrust: "always"` for pi and
 `MISE_TRUSTED_CONFIG_PATHS=/workspaces` for mise. Both are deliberate reductions of a
-safeguard, justified by the container boundary rather than waved away — see
+safeguard, justified by the container boundary rather than waved away. See
 [decisions.md](decisions.md#trust-inside-the-container).

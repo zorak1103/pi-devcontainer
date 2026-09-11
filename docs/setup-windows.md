@@ -6,15 +6,15 @@ because three of its details will cost you time if you meet them unprepared.
 ## Running the scripts
 
 `init-project.sh` and `verify.sh` are Bash scripts; PowerShell and cmd.exe cannot run them.
-Use **Git Bash**, which ships with Git for Windows — Git is already a prerequisite for
-cloning this repository, so there is nothing extra to install. Open "Git Bash" from the
-Start menu (or right-click a folder and choose "Git Bash Here") and run the commands from
+Use **Git Bash**, which ships with Git for Windows. Git is already a prerequisite for
+cloning this repository, so there is nothing extra to install. Open **Git Bash** from the
+Start menu, or right-click a folder and choose **Git Bash Here**, then run the commands from
 there.
 
 ## Docker
 
 Install Docker Desktop and make sure it is running before opening the project. The container
-runs `linux/amd64`; on an ARM host Docker Desktop emulates, which works but is slow — the Go
+runs `linux/amd64`; on an ARM host Docker Desktop emulates, which works but is slow. The Go
 image also publishes `arm64`, so changing the `FROM` line in `.devcontainer/Dockerfile` is
 worth it there.
 
@@ -38,19 +38,19 @@ Set it once as a user environment variable:
 setx ANTHROPIC_API_KEY sk-ant-...
 ```
 
-**Then restart VS Code — fully, including any window already open.** `setx` writes to the
-registry and affects processes started afterwards. A VS Code that was already running when
-you ran it will pass an empty value into the container, and pi will ask you to log in with no
-indication why. `post-create.sh` prints a warning when the variable is empty, which is your
-signal that this happened.
+Restart VS Code fully, including any window already open, before the value takes effect.
+`setx` writes to the registry and affects processes started afterwards. A VS Code that was
+already running when you ran it will pass an empty value into the container, and pi will ask
+you to log in with no indication why. `post-create.sh` prints a warning when the variable is
+empty, which is your signal that this happened.
 
 On Linux and macOS, export it from your shell profile and start VS Code from a shell that has
 it, or use your desktop environment's equivalent.
 
-If `${localEnv:…}` is empty, nothing else breaks — the container comes up fine and only pi's
+If `${localEnv:…}` is empty, nothing else breaks. The container comes up fine and only pi's
 authentication is missing.
 
-Using OpenRouter, another API-key provider, or a self-hosted/proxied endpoint instead? See
+For OpenRouter, another API-key provider, or a self-hosted/proxied endpoint, see
 [providers.md](providers.md).
 
 ### A consequence worth knowing
@@ -70,7 +70,7 @@ bash: /workspaces/project/.devcontainer/post-create.sh: /usr/bin/env: bad interp
 ```
 
 The `.gitattributes` in this repository pins `*.sh`, `*.js` and `Dockerfile` to LF, which
-prevents it. **If you copy the template into a project of your own, copy that rule too:**
+prevents it. If you copy the template into a project of your own, copy that rule too:
 
 ```gitattributes
 *.sh text eol=lf
@@ -79,7 +79,7 @@ Dockerfile text eol=lf
 ```
 
 The lifecycle hooks additionally invoke `bash <script>` rather than executing the file
-directly, so a missing executable bit — which a Windows checkout does not preserve — is not a
+directly, so a missing executable bit (which a Windows checkout does not preserve) is not a
 second failure mode.
 
 ## The host home directory
@@ -103,7 +103,7 @@ entirely by not mounting the host home: `initializeCommand` runs Node, which res
 ```
 
 Expect `30 passed, 0 failed`. If `V7b key reaches the container` fails, the API key did not
-make it — see above about restarting VS Code.
+make it. See above about restarting VS Code.
 
 Then, once, by hand:
 

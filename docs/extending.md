@@ -6,7 +6,7 @@ expensive, the agent's capabilities would freeze at whatever the image happened 
 
 ## CLI tools
 
-Declare the tool in a `mise.toml` and rebuild — or, inside a running container, run
+Declare the tool in a `mise.toml` and rebuild. Or, inside a running container, run
 `mise use -g <tool>` and it is available immediately.
 
 Where it goes depends on who needs it:
@@ -47,7 +47,7 @@ seems missing. Background:
 [findings.md](findings.md#f12--one-unresolvable-tool-aborted-the-whole-container-creation).
 
 To confirm a tool is genuinely reachable by the agent, check the shim path rather than mere
-availability — the image already ships some tools of its own:
+availability. The image already ships some tools of its own:
 
 ```bash
 command -v jq     # want: /home/vscode/.local/share/mise/shims/jq
@@ -67,7 +67,7 @@ packages are declared, not installed by hand:
 ```
 
 Then rebuild the container. With warm caches this takes seconds, and the result is
-reproducible for everyone who opens the project — which ad-hoc `apt install` never is.
+reproducible for everyone who opens the project, which ad-hoc `apt install` never is.
 
 ## pi resources
 
@@ -79,7 +79,7 @@ survives the trip into a container unchanged:
 ```
 
 Put them in `~/.pi/devcontainer/settings.json` for yourself, or in the project's
-`.pi/settings.json` for the team — pi installs missing project packages at startup. Prefer
+`.pi/settings.json` for the team: pi installs missing project packages at startup. Prefer
 this over local-path extensions, which would need a mount and a path rewrite for every
 developer.
 
@@ -87,14 +87,14 @@ developer.
 
 | Path | Scope |
 |---|---|
-| `~/.pi/agent/skills/` | global — put files in `~/.pi/devcontainer/skills/` and they land here |
+| `~/.pi/agent/skills/` | global; put files in `~/.pi/devcontainer/skills/` and they land here |
 | `~/.agents/skills/` | global, cross-agent convention |
 | `.pi/skills/` | project |
 | `.agents/skills/` in the workspace and its ancestors | project, cross-agent convention |
 
 **Context files.** `AGENTS.md` is loaded from `~/.pi/agent/AGENTS.md` (the personal layer
 supplies it) and from the workspace and its ancestors. The shipped global one tells the agent
-it is in a container without `sudo` and how to add tools — worth keeping, because otherwise
+it is in a container without `sudo` and how to add tools, which is worth keeping: otherwise
 the agent spends turns trying `sudo apt install`.
 
 ## The project layer
@@ -134,7 +134,7 @@ RUN mkdir -p /home/vscode/.cache/your-tool \
  && chown -R vscode:vscode /home/vscode/.cache/your-tool
 ```
 
-Docker creates a missing mount point as `root`, and there is no `sudo` to repair it — the
+Docker creates a missing mount point as `root`, and there is no `sudo` to repair it: the
 first write fails and cannot be fixed from inside. This is not optional; see
 [findings.md](findings.md#f8--named-volumes-on-paths-absent-from-the-image-are-created-root-owned).
 `scripts/verify.sh` checks every mount point for ownership and writability, so add your new
@@ -153,11 +153,11 @@ PI_DC_PERSONAL=~/profiles/minimal devcontainer up --workspace-folder .
 
 Copy `templates/go/` to `templates/<language>/` and change two things:
 
-1. the `FROM` line in the `Dockerfile` — the
+1. the `FROM` line in the `Dockerfile`. The
    [devcontainer images](https://github.com/devcontainers/images) cover most ecosystems, and
-   they all follow the same `vscode`-user convention this template relies on;
+   they all follow the same `vscode`-user convention this template relies on.
 2. the project `mise.toml` in your project.
 
-Everything else — pi installation, personal layer, hardening, volumes — is
+Everything else (pi installation, personal layer, hardening, volumes) is
 language-independent. Keep the `mkdir`/`chown` block: only the language-specific cache path
 changes (`/go/pkg/mod` becomes `~/.cache/pip`, `~/.npm`, `~/.cargo`, and so on).
