@@ -5,7 +5,7 @@ set -uo pipefail
 fail=0
 note() { echo "  FAIL  $1"; fail=1; }
 
-REQUIRED="README.md LICENSE docs/architecture.md docs/decisions.md docs/findings.md docs/setup-windows.md docs/extending.md docs/comparison.md"
+REQUIRED="README.md LICENSE docs/architecture.md docs/decisions.md docs/findings.md docs/setup-windows.md docs/extending.md docs/comparison.md docs/providers.md"
 for f in $REQUIRED; do
   [ -s "$f" ] || note "missing or empty: $f"
 done

@@ -29,7 +29,8 @@ cd pi-devcontainer
 
 Add the two lines the script prints to your project's `.gitignore`, set your API key once
 (see [docs/setup-windows.md](docs/setup-windows.md) — on Windows this needs a VS Code
-restart), then open the project in VS Code and choose **Reopen in Container**. In the
+restart; for OpenRouter or another provider, see [docs/providers.md](docs/providers.md)),
+then open the project in VS Code and choose **Reopen in Container**. In the
 container's terminal:
 
 ```bash
@@ -45,7 +46,7 @@ still comes up, with pi's defaults.
 | Layer | Lives in | Holds |
 |---|---|---|
 | Base | `devcontainer.json` in your project | Go image, Node, mise, pi, the hardening flags |
-| Personal | `~/.pi/devcontainer/` on your host | your pi settings, your tools, your global `AGENTS.md` |
+| Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, your tools, your global `AGENTS.md` |
 | Project | committed in the repo | project toolchain, `AGENTS.md`, project pi settings |
 
 The personal layer is **copied** into the container, never mounted, so it stays writable
@@ -94,6 +95,7 @@ was rejected as a default.
 | [decisions.md](docs/decisions.md) | every design decision, its alternatives, and what it costs |
 | [findings.md](docs/findings.md) | measurements against the real base image, with reproduction commands |
 | [setup-windows.md](docs/setup-windows.md) | Docker Desktop, the API key, the CRLF trap |
+| [providers.md](docs/providers.md) | configuring OpenRouter, other API-key providers, and self-hosted/proxied endpoints |
 | [extending.md](docs/extending.md) | adding tools, system packages, pi resources, new language targets |
 | [comparison.md](docs/comparison.md) | how this relates to `marcfargas/pi-devcontainers` |
 

@@ -50,6 +50,9 @@ it, or use your desktop environment's equivalent.
 If `${localEnv:…}` is empty, nothing else breaks — the container comes up fine and only pi's
 authentication is missing.
 
+Using OpenRouter, another API-key provider, or a self-hosted/proxied endpoint instead? See
+[providers.md](providers.md).
+
 ### A consequence worth knowing
 
 `remoteEnv` values reach processes started by VS Code or `devcontainer exec`, and nothing

@@ -9,6 +9,7 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
 # Copied, never mounted: the container keeps a writable copy and the host stays untouched.
 # Refreshed on every create, so edits to the personal layer take effect on rebuild.
 [ -f "$P/settings.json" ] && cp    "$P/settings.json" ~/.pi/agent/settings.json
+[ -f "$P/models.json"   ] && cp    "$P/models.json"   ~/.pi/agent/models.json
 [ -f "$P/AGENTS.md"     ] && cp    "$P/AGENTS.md"     ~/.pi/agent/AGENTS.md
 [ -f "$P/mise.toml"     ] && cp    "$P/mise.toml"     ~/.config/mise/config.toml
 [ -d "$P/skills"        ] && cp -r "$P/skills/."      ~/.pi/agent/skills/
