@@ -80,6 +80,47 @@ Add a fully custom OpenAI-compatible endpoint:
 If the endpoint takes its own API key through an environment variable, as in the example
 above, add that variable to `remoteEnv` too, the same way as `ANTHROPIC_API_KEY`.
 
+## Multiple providers at once
+
+`providers` is a map, so one `models.json` can combine as many entries as you need, each
+with its own `baseUrl` and `apiKey`. Route Anthropic (Sonnet and Opus) through your own proxy
+with one key, and use OpenRouter with a separate key, at the same time:
+
+```json
+{
+  "providers": {
+    "anthropic": {
+      "baseUrl": "https://my-custom-anthropic-proxy.example.com/v1",
+      "apiKey": "$MY_ANTHROPIC_PROXY_KEY"
+    },
+    "openrouter": {
+      "apiKey": "$OPENROUTER_API_KEY"
+    }
+  }
+}
+```
+
+The `anthropic` entry sets only `baseUrl` and `apiKey`, so every built-in Anthropic model,
+including Sonnet and Opus, keeps working, now routed through the proxy with its own key.
+Each provider's key resolves independently: `$MY_ANTHROPIC_PROXY_KEY` and
+`$OPENROUTER_API_KEY` are two separate environment variables, set the same way as
+`ANTHROPIC_API_KEY`.
+
+If a model is not yet in pi's built-in catalog for a provider (check with
+`pi --list-models`), add it under that provider's `models`. Custom models merge into the
+existing catalog by `id` and do not remove anything already there:
+
+```json
+{
+  "providers": {
+    "openrouter": {
+      "apiKey": "$OPENROUTER_API_KEY",
+      "models": [{ "id": "zhipuai/glm-5.3" }]
+    }
+  }
+}
+```
+
 ## Which mechanism for which provider
 
 | Provider needs | Mechanism | Example |
