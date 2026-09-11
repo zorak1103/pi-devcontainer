@@ -3,6 +3,14 @@
 Everything here also applies to Linux and macOS except where noted; Windows is called out
 because three of its details will cost you time if you meet them unprepared.
 
+## Running the scripts
+
+`init-project.sh` and `verify.sh` are Bash scripts; PowerShell and cmd.exe cannot run them.
+Use **Git Bash**, which ships with Git for Windows — Git is already a prerequisite for
+cloning this repository, so there is nothing extra to install. Open "Git Bash" from the
+Start menu (or right-click a folder and choose "Git Bash Here") and run the commands from
+there.
+
 ## Docker
 
 Install Docker Desktop and make sure it is running before opening the project. The container

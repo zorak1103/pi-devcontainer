@@ -13,6 +13,8 @@ tool is one line and no image rebuild, which matters more than it sounds: pi has
 
 - Docker (Docker Desktop on Windows or macOS)
 - VS Code with the **Dev Containers** extension
+- Git, with Git Bash on Windows — needed for `git clone` anyway, and it's the shell the
+  scripts below run in
 - Optional, for the acceptance checks: the [`devcontainer` CLI](https://github.com/devcontainers/cli)
 
 ## Quick start
@@ -22,6 +24,8 @@ git clone https://github.com/zorak1103/pi-devcontainer
 cd pi-devcontainer
 ./scripts/init-project.sh /path/to/your/go-project
 ```
+
+(Windows: run these in Git Bash, not PowerShell or cmd — the scripts are `.sh` files.)
 
 Add the two lines the script prints to your project's `.gitignore`, set your API key once
 (see [docs/setup-windows.md](docs/setup-windows.md) — on Windows this needs a VS Code
