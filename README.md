@@ -73,19 +73,11 @@ It must answer without a trust prompt and leave a session file in `.pi/sessions/
 ## Security posture
 
 Lightly hardened, and the emphasis is on *lightly* — this bounds the blast radius of a
-misbehaving agent, it does not contain a determined attacker.
-
-- Runs as non-root (`vscode`, uid 1000).
-- All capabilities dropped. One survives, `SYS_PTRACE`, because the base image's metadata
-  re-adds it; the ceiling is one capability instead of the usual fourteen.
-- `no-new-privileges`, so `sudo` does not work. System packages are declared and rebuilt
-  instead of installed ad hoc.
-- The API key travels via `remoteEnv` only and is not visible in `docker inspect`.
-- Your host home is never mounted. `~/.pi/agent/auth.json` never enters the container.
-
-What this does *not* protect against: the key is inside the container by design, and network
-egress is unrestricted. See [docs/decisions.md](docs/decisions.md) for why egress filtering
-was rejected as a default.
+misbehaving agent, it does not contain a determined attacker. Non-root, capabilities dropped
+to one, `no-new-privileges`, the API key kept out of `docker inspect`, the host home never
+mounted — and, just as deliberately, what none of that protects against: the key still lives
+in the container, and network egress is unrestricted. See [docs/threat-model.md](docs/threat-model.md)
+for the full picture.
 
 ## Documentation
 
@@ -96,6 +88,7 @@ was rejected as a default.
 | [findings.md](docs/findings.md) | measurements against the real base image, with reproduction commands |
 | [setup-windows.md](docs/setup-windows.md) | Docker Desktop, the API key, the CRLF trap |
 | [providers.md](docs/providers.md) | configuring OpenRouter, other API-key providers, and self-hosted/proxied endpoints |
+| [threat-model.md](docs/threat-model.md) | what the hardening bounds, and what it explicitly does not |
 | [extending.md](docs/extending.md) | adding tools, system packages, pi resources, new language targets |
 | [comparison.md](docs/comparison.md) | how this relates to `marcfargas/pi-devcontainers` |
 

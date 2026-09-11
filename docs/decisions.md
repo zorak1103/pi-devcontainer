@@ -14,6 +14,7 @@ container-local volume, which is clean but makes every fresh container a login.
 **Cost:** the key is inside the container. A compromised agent can read it. This is accepted
 explicitly, and it is why the threat model below is about blast radius rather than secrecy.
 `remoteEnv` at least keeps it out of `docker inspect` — see [findings.md](findings.md#f3--remoteenv-keeps-the-secret-out-of-docker-inspect).
+See [threat-model.md](threat-model.md) for the consolidated picture.
 
 ## D2 — What the hardening defends against
 
@@ -28,7 +29,8 @@ worse than no control, because you stop thinking about it. Also rejected: a read
 filesystem, which fights pi's own writes.
 
 **Cost:** an agent that can reach the network can exfiltrate. This setup bounds what a
-misbehaving agent can *touch*, not what it can *tell*.
+misbehaving agent can *touch*, not what it can *tell*. See [threat-model.md](threat-model.md)
+for the consolidated picture.
 
 ## D3 — How the environment reaches a project
 
