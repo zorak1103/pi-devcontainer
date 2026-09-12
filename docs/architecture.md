@@ -8,7 +8,7 @@ where a piece of configuration belongs, this table answers it.
 | Layer | Location | Contents | Owner |
 |---|---|---|---|
 | Base | `.devcontainer/` in the project | Go image, Node feature, mise feature, pi installation, hardening | this template |
-| Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
+| Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
 | Project | committed in the project repo | `mise.toml`, `.pi/settings.json`, `AGENTS.md` | the team |
 
 Two properties make this work:
@@ -33,7 +33,7 @@ Host                                  Container (linux/amd64, user vscode, uid 1
 │                          │          │    into the container by postCreate)  │
 │                          │          │                                       │
 │ ~/.pi/devcontainer/  ────┼─ COPY ──▶│ ~/.pi/agent/{settings.json,models.json│
-│   (never mounted)        │          │   AGENTS.md}                          │
+│   (never mounted)        │          │   mcp.json,AGENTS.md}                 │
 │                          │          │ ~/.config/mise/config.toml            │
 │                          │          │                                       │
 │ ANTHROPIC_API_KEY  ──────┼remoteEnv▶│ (process environment only)            │
