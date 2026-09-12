@@ -29,6 +29,7 @@
     "source=pi-dc-gobuild,target=/home/vscode/.cache/go-build,type=volume",
     "source=pi-dc-mise,target=/home/vscode/.local/share/mise,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-pinpm,target=/home/vscode/.pi/agent/npm,type=volume",
+    "source=pi-dc-${localWorkspaceFolderBasename}-claudeplugins,target=/home/vscode/.pi/agent/pi-claude-marketplace,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-config,target=/home/vscode/.config,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-hist,target=/home/vscode/.history,type=volume"
   ],

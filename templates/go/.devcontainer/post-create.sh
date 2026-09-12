@@ -11,6 +11,7 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
 [ -f "$P/settings.json" ] && cp    "$P/settings.json" ~/.pi/agent/settings.json
 [ -f "$P/models.json"   ] && cp    "$P/models.json"   ~/.pi/agent/models.json
 [ -f "$P/mcp.json"      ] && cp    "$P/mcp.json"      ~/.pi/agent/mcp.json
+[ -f "$P/claude-plugins.json" ] && cp "$P/claude-plugins.json" ~/.pi/agent/claude-plugins.json
 [ -f "$P/AGENTS.md"     ] && cp    "$P/AGENTS.md"     ~/.pi/agent/AGENTS.md
 [ -f "$P/mise.toml"     ] && cp    "$P/mise.toml"     ~/.config/mise/config.toml
 [ -d "$P/skills"        ] && cp -r "$P/skills/."      ~/.pi/agent/skills/
@@ -21,6 +22,15 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
 # No --approve needed: global packages carry no project-trust gate.
 [ -f "$P/settings.json" ] && \
   { pi update --extensions || echo "WARNING: 'pi update --extensions' failed — packages from the personal layer may be missing"; }
+
+# claude-plugins.json's marketplace/plugin clones happen at pi's own session-start hook,
+# not at `pi update --extensions` above (see findings.md, finding F16). A throwaway
+# non-interactive run triggers that hook eagerly; the model call itself is expected to
+# fail here (no credentials needed for this) and is discarded. --offline skips pi's own
+# startup network checks but does not block the hook's git clone; --no-session avoids
+# leaving an empty session file behind.
+[ -f "$P/claude-plugins.json" ] && \
+  { pi --offline --no-session -p "noop" >/dev/null 2>&1 || true; }
 
 [ -n "${ANTHROPIC_API_KEY:-}" ] || \
   echo "WARNING: ANTHROPIC_API_KEY is empty — see docs/setup-windows.md"

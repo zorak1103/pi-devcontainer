@@ -7,6 +7,7 @@ RUN mkdir -p /go/pkg/mod \
              /home/vscode/.cache/go-build \
              /home/vscode/.local/share/mise \
              /home/vscode/.pi/agent/npm \
+             /home/vscode/.pi/agent/pi-claude-marketplace \
              /home/vscode/.config \
              /home/vscode/.history \
  && chown -R vscode:vscode /go/pkg /home/vscode

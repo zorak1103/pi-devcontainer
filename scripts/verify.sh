@@ -34,7 +34,7 @@ expect_cmd_fails() { # name command
   fi
 }
 
-MOUNTS="/go/pkg/mod /home/vscode/.cache/go-build /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.config /home/vscode/.history"
+MOUNTS="/go/pkg/mod /home/vscode/.cache/go-build /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
 
 # Container ID via the container's own hostname — avoids brittle label filtering.
 CID="$(inc 'cat /etc/hostname' | tr -d '\r\n')"

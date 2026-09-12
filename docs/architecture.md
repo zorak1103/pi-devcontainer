@@ -8,7 +8,7 @@ where a piece of configuration belongs, this table answers it.
 | Layer | Location | Contents | Owner |
 |---|---|---|---|
 | Base | `.devcontainer/` in the project | Go image, Node feature, mise feature, pi installation, hardening | this template |
-| Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
+| Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
 | Project | committed in the project repo | `mise.toml`, `.pi/settings.json`, `AGENTS.md` | the team |
 
 Two properties make this work:
@@ -33,7 +33,8 @@ Host                                  Container (linux/amd64, user vscode, uid 1
 │                          │          │    into the container by postCreate)  │
 │                          │          │                                       │
 │ ~/.pi/devcontainer/  ────┼─ COPY ──▶│ ~/.pi/agent/{settings.json,models.json│
-│   (never mounted)        │          │   mcp.json,AGENTS.md}                 │
+│   (never mounted)        │          │   mcp.json,claude-plugins.json,       │
+│                          │          │   AGENTS.md}                          │
 │                          │          │ ~/.config/mise/config.toml            │
 │                          │          │                                       │
 │ ANTHROPIC_API_KEY  ──────┼remoteEnv▶│ (process environment only)            │
@@ -58,6 +59,7 @@ between projects:
 | Volume | Mount point | Holds |
 |---|---|---|
 | `pi-dc-<project>-pinpm` | `~/.pi/agent/npm` | installed pi packages |
+| `pi-dc-<project>-claudeplugins` | `~/.pi/agent/pi-claude-marketplace` | cloned Claude marketplaces and plugins (see [findings.md](findings.md#f15--pi-claude-marketplace-clones-outside-the-npm-volume)) |
 | `pi-dc-<project>-config` | `~/.config` | `gh`, `glab`, `jira` logins |
 | `pi-dc-<project>-hist` | `~/.history` | shell history |
 

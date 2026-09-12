@@ -115,7 +115,7 @@ Neither `/go/pkg` nor `/home/vscode/.cache` exists in the base image. Combined w
 is no `sudo` to repair it afterwards, so the module cache, build cache, tool directory and pi
 package directory would all have been unusable.
 
-Resolution: one derived image layer that creates all six mount points and chowns them. The
+Resolution: one derived image layer that creates all seven mount points and chowns them. The
 `devcontainer.metadata` label is inherited by the derived image (verified: five entries,
 `remoteUser: vscode`), so the `golang.Go` extension, `go.gopath` and the non-root user
 survive.
@@ -227,3 +227,55 @@ developer types something, not at container creation. A first prompt that also h
 npm registry is a slower and less predictable first prompt. `post-create.sh` now runs
 `pi update --extensions` right after copying `settings.json`, so the fetch happens during
 `postCreateCommand` instead, same as pi's own install in `install-pi.sh`.
+
+## F15 — pi-claude-marketplace clones outside the npm volume
+
+```bash
+PI_CODING_AGENT_DIR=/tmp/agent pi update --extensions   # pi-claude-marketplace declared
+PI_CODING_AGENT_DIR=/tmp/agent pi -p "say hi"            # claude-plugins.json declared
+find /tmp/agent -maxdepth 1
+```
+
+```
+/tmp/agent/auth.json
+/tmp/agent/claude-plugins.json
+/tmp/agent/npm
+/tmp/agent/pi-claude-marketplace
+/tmp/agent/sessions
+/tmp/agent/settings.json
+```
+
+A declarative `claude-plugins.json` behaves like F14's `packages`: a plain `pi` invocation
+reads it and clones whatever marketplaces and plugins it declares, unattended, no `/claude:
+plugin` command needed. But the clones (a full git checkout per plugin, and one per
+marketplace) land in `~/.pi/agent/pi-claude-marketplace/`, a sibling of `~/.pi/agent/npm/`,
+not inside it. The existing `pi-dc-<project>-pinpm` volume covers only `npm/`, so without a
+second volume, every container rebuild re-clones every declared marketplace and plugin from
+GitHub from scratch.
+
+Resolution: a second per-project volume, `pi-dc-<project>-claudeplugins`, mounted at
+`~/.pi/agent/pi-claude-marketplace`. Same F8 rule applies: the path does not exist in the
+base image, so it needs the same `mkdir`/`chown` treatment in the `Dockerfile` as every other
+mount point.
+
+## F16 — The claude-plugins.json sync runs at session start, not at `pi update`
+
+```bash
+PI_CODING_AGENT_DIR=/tmp/agent pi update --extensions   # as in F15
+find /tmp/agent -maxdepth 1 -iname pi-claude-marketplace   # nothing yet
+PI_CODING_AGENT_DIR=/tmp/agent pi --offline --no-session -p "noop"
+find /tmp/agent -maxdepth 1 -iname pi-claude-marketplace   # now present
+```
+
+Unlike F14's package fetch, `pi update --extensions` does not run pi-claude-marketplace's
+desired-state sync at all; nothing is cloned until an actual `pi` session starts, because the
+sync is wired to the extension's session-start hook, not to the update command. `--offline`
+does not stop it either: it disables pi's own startup network operations (self-update and
+model-catalog checks), and the marketplace/plugin clone is the extension's own network call,
+outside that scope.
+
+`post-create.sh` covers this with a throwaway `pi --offline --no-session -p "noop"` right
+after `pi update --extensions`. The model call is expected to fail (no real prompt, and
+credentials may not even be configured yet at this point in the container's life); only the
+side effect, the sync, is wanted. `--no-session` keeps that throwaway run out of
+`.pi/sessions/`.
