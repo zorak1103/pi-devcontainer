@@ -141,6 +141,51 @@ For project-shared servers instead of personal ones, use `.mcp.json` in the proj
 instead of the personal `mcp.json`; see the adapter's own README for the full precedence
 order between the two.
 
+## Install Claude Code plugins via pi-claude-marketplace
+
+[`pi-claude-marketplace`](https://github.com/acolomba/pi-claude-marketplace) loads Claude
+Code plugin marketplaces (commands, skills, agents, hooks, MCP servers) into pi. Worked
+example: the `superpowers` skill library, from the official marketplace.
+
+1. Add the package. `pi-subagents` and `pi-mcp-adapter` are optional but recommended (agent-
+   and MCP-backed plugins need them):
+
+   ```json
+   { "packages": ["npm:pi-claude-marketplace", "npm:pi-subagents", "npm:pi-mcp-adapter"] }
+   ```
+
+2. Declare the desired state in `~/.pi/devcontainer/claude-plugins.json` (also part of the
+   fixed personal-layer copy list, landing at `~/.pi/agent/claude-plugins.json`):
+
+   ```json
+   {
+     "schemaVersion": 1,
+     "marketplaces": {
+       "claude-plugins-official": {
+         "source": "anthropics/claude-plugins-official",
+         "autoupdate": true
+       }
+     },
+     "plugins": { "superpowers@claude-plugins-official": {} }
+   }
+   ```
+
+   No `/claude:plugin` command needed: pi reconciles this file automatically at its own
+   session start ([findings.md#f16](findings.md#f16--the-claude-pluginsjson-sync-runs-at-session-start-not-at-pi-update)).
+
+3. Rebuild. The template's `Dockerfile`/`devcontainer.json` already provision a
+   `pi-dc-<project>-claudeplugins` volume for the resulting clones
+   ([findings.md#f15](findings.md#f15--pi-claude-marketplace-clones-outside-the-npm-volume)), so
+   only the first rebuild pays the clone cost.
+
+4. Confirm inside pi: `/claude:plugin list --installed`, then use the plugin (here, any
+   `superpowers` skill).
+
+To add a marketplace pi-claude-marketplace does not know about yet, use
+`/claude:plugin marketplace add <owner>/<repo>` interactively once, then copy the resulting
+`~/.pi/agent/claude-plugins.json` back into `~/.pi/devcontainer/claude-plugins.json` to make
+it permanent, the same pattern as "Make an extension's own config file persist" above.
+
 ## Carry your own tools, skills and context across every project
 
 Already-working examples ship in [`personal/`](../personal/); copy what you want into
