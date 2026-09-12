@@ -101,8 +101,8 @@ project-trust gate, unlike `.pi/settings.json` in the project.
 **A package with its own config file needs its own copy line.** `pi-zentui`, for example,
 keeps its settings in `~/.pi/agent/zentui.json`, written by its own `/zentui` command, not in
 `settings.json`. The personal layer's copy list in `post-create.sh` only knows a fixed set of
-names (`settings.json`, `models.json`, `AGENTS.md`, `mise.toml`), so add the file there
-yourself:
+names (`settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`, `AGENTS.md`,
+`mise.toml`), so add the file there yourself:
 
 ```bash
 [ -f "$P/zentui.json" ] && cp "$P/zentui.json" ~/.pi/agent/zentui.json

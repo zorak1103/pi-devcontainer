@@ -46,7 +46,7 @@ still comes up, with pi's defaults.
 | Layer | Lives in | Holds |
 |---|---|---|
 | Base | `devcontainer.json` in your project | Go image, Node, mise, pi, the hardening flags |
-| Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, your tools, your global `AGENTS.md` |
+| Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, MCP servers, Claude plugins, your tools, your global `AGENTS.md` |
 | Project | committed in the repo | project toolchain, `AGENTS.md`, project pi settings |
 
 The personal layer is **copied** into the container, never mounted, so it stays writable

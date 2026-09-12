@@ -75,7 +75,8 @@ package that manages its own config file outside `settings.json` follows the sam
    ```
 
 3. Add a copy line for it in the project's `post-create.sh`, next to the existing personal
-   layer copies (`settings.json`, `models.json`, `AGENTS.md`, `mise.toml`):
+   layer copies (`settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`,
+   `AGENTS.md`, `mise.toml`):
 
    ```bash
    [ -f "$P/zentui.json" ] && cp "$P/zentui.json" ~/.pi/agent/zentui.json
