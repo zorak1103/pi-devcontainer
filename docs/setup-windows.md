@@ -51,7 +51,8 @@ If `${localEnv:…}` is empty, nothing else breaks. The container comes up fine 
 authentication is missing.
 
 For OpenRouter, another API-key provider, or a self-hosted/proxied endpoint, see
-[providers.md](providers.md).
+[providers.md](providers.md). For an MCP server's own credentials (a different kind of
+secret, same `remoteEnv` mechanism), see [how-to.md](how-to.md#add-an-mcp-server).
 
 ### A consequence worth knowing
 

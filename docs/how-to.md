@@ -86,6 +86,61 @@ package that manages its own config file outside `settings.json` follows the sam
 
 4. Commit that `post-create.sh` change. Rebuild: the configuration is back.
 
+## Add an MCP server
+
+[`pi-mcp-adapter`](https://github.com/nicobailon/pi-mcp-adapter) gives pi access to MCP
+servers through one proxy tool instead of loading every server's full tool schema. Worked
+example: [Context7](https://context7.com/) (up-to-date library docs), added globally.
+
+1. Add the package (see "Add a global pi package" above):
+
+   ```json
+   { "packages": ["npm:pi-mcp-adapter"] }
+   ```
+
+2. Declare the server in `~/.pi/devcontainer/mcp.json`. It lands at `~/.pi/agent/mcp.json`,
+   the adapter's own global-override path, and the personal-layer copy list already includes
+   it (`post-create.sh`, no per-project edit needed for this file):
+
+   ```json
+   {
+     "mcpServers": {
+       "context7": {
+         "url": "https://mcp.context7.com/mcp",
+         "headers": { "Authorization": "Bearer ${CONTEXT7_API_KEY}" }
+       }
+     }
+   }
+   ```
+
+   `headers` (and `env`, for stdio servers) interpolate `${VAR}` from the process
+   environment; nothing pi-specific needed on the server side.
+
+3. Get the secret into the container the same way as any other API key
+   ([setup-windows.md](setup-windows.md#the-api-key), [decisions.md#d1](decisions.md#d1--where-the-provider-credentials-live)):
+   add it to the **project's** `devcontainer.json`, since `remoteEnv` is project layer, not
+   personal layer:
+
+   ```jsonc
+   "remoteEnv": { "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}" }
+   ```
+
+   then, once per machine:
+
+   ```cmd
+   setx CONTEXT7_API_KEY <your-key>
+   ```
+
+   (restart VS Code fully; see setup-windows.md for why). Repeat the `remoteEnv` line in
+   every project that should reach that server, same as any other provider key: it is not
+   part of the personal layer and does not propagate on its own.
+
+4. Rebuild. Run `/mcp` inside pi to confirm the server is registered.
+
+For project-shared servers instead of personal ones, use `.mcp.json` in the project repo
+instead of the personal `mcp.json`; see the adapter's own README for the full precedence
+order between the two.
+
 ## Carry your own tools, skills and context across every project
 
 Already-working examples ship in [`personal/`](../personal/); copy what you want into
