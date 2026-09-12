@@ -86,6 +86,7 @@ network egress is unrestricted. See [docs/threat-model.md](docs/threat-model.md)
 | [decisions.md](docs/decisions.md) | every design decision, its alternatives, and what it costs |
 | [findings.md](docs/findings.md) | measurements against the real base image, with reproduction commands |
 | [setup-windows.md](docs/setup-windows.md) | Docker Desktop, the API key, the CRLF trap |
+| [how-to.md](docs/how-to.md) | recipes: add/remove a pi package, persist an extension's config, set up a new project |
 | [providers.md](docs/providers.md) | configuring OpenRouter, other API-key providers, and self-hosted/proxied endpoints |
 | [threat-model.md](docs/threat-model.md) | what the hardening bounds, and what it explicitly does not |
 | [extending.md](docs/extending.md) | adding tools, system packages, pi resources, new language targets |
