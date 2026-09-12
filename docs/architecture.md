@@ -86,7 +86,7 @@ is standalone so it can become a Dev Container Feature's `install.sh` without ed
 | `initializeCommand` | `sync-personal.js` | on the **host**, before the container exists | copies `~/.pi/devcontainer/` to `.devcontainer/.personal/` in the workspace |
 | image build | `Dockerfile` | at build time | creates and chowns the volume mount points, puts the mise shims first on `PATH` |
 | `onCreateCommand` | `install-pi.sh` | in the container, once | checks for npm, installs the pinned pi version |
-| `postCreateCommand` | `post-create.sh` | in the container, after that | applies the personal layer, registers the git safe directory, runs `mise install` |
+| `postCreateCommand` | `post-create.sh` | in the container, after that | applies the personal layer, fetches its declared pi packages, registers the git safe directory, runs `mise install` |
 
 `sync-personal.js` runs Node rather than a shell script because the devcontainer CLI ships
 Node and the host shell differs per platform. It never fails the container start: a missing

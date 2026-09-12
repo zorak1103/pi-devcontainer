@@ -14,6 +14,13 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
 [ -f "$P/mise.toml"     ] && cp    "$P/mise.toml"     ~/.config/mise/config.toml
 [ -d "$P/skills"        ] && cp -r "$P/skills/."      ~/.pi/agent/skills/
 
+# The copy above does not fetch anything it declares. pi only checks for missing packages
+# at its own startup, so without this, packages in the personal settings.json would first
+# get fetched whenever the developer types the first prompt (see findings.md, finding F14).
+# No --approve needed: global packages carry no project-trust gate.
+[ -f "$P/settings.json" ] && \
+  { pi update --extensions || echo "WARNING: 'pi update --extensions' failed — packages from the personal layer may be missing"; }
+
 [ -n "${ANTHROPIC_API_KEY:-}" ] || \
   echo "WARNING: ANTHROPIC_API_KEY is empty — see docs/setup-windows.md"
 

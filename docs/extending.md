@@ -83,6 +83,34 @@ Put them in `~/.pi/devcontainer/settings.json` for yourself, or in the project's
 this over local-path extensions, which would need a mount and a path rewrite for every
 developer.
 
+**The personal copy alone does not fetch anything.** pi checks for missing packages at its
+own startup, not when `settings.json` lands in `~/.pi/agent/`, and for the personal layer
+that means the first `pi` invocation inside the container, not container creation (see
+[findings.md](findings.md#f14--global-pi-packages-install-on-the-next-invocation-with-no-trust-prompt)).
+`post-create.sh` runs `pi update --extensions` right after the copy so the fetch happens
+during `postCreateCommand` instead, before anyone has typed a prompt:
+
+```bash
+[ -f "$P/settings.json" ] && pi update --extensions
+```
+
+`pi update --extensions` installs anything declared but missing and updates anything already
+installed, so one line covers both. It needs no `--approve`: global packages carry no
+project-trust gate, unlike `.pi/settings.json` in the project.
+
+**A package with its own config file needs its own copy line.** `pi-zentui`, for example,
+keeps its settings in `~/.pi/agent/zentui.json`, written by its own `/zentui` command, not in
+`settings.json`. The personal layer's copy list in `post-create.sh` only knows a fixed set of
+names (`settings.json`, `models.json`, `AGENTS.md`, `mise.toml`), so add the file there
+yourself:
+
+```bash
+[ -f "$P/zentui.json" ] && cp "$P/zentui.json" ~/.pi/agent/zentui.json
+```
+
+Configure the package once inside a container, copy the resulting file to
+`~/.pi/devcontainer/` on the host, and every later rebuild keeps it.
+
 **Skills** are discovered from, in order of scope:
 
 | Path | Scope |

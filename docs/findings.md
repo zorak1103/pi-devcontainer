@@ -201,3 +201,29 @@ Two fixes, both worth having:
 `jq` exists at `/usr/bin/jq` in the base image. A check asserting only that `command -v jq`
 succeeds would have passed without mise being involved at all. The tool checks therefore
 assert the **shim path** (`…/shims/jq`), which is what actually proves the mechanism works.
+
+## F14 — Global pi packages install on the next invocation, with no trust prompt
+
+```bash
+mkdir -p /tmp/agent && echo '{"packages": ["npm:pi-zentui"]}' > /tmp/agent/settings.json
+PI_CODING_AGENT_DIR=/tmp/agent pi -p "say hi"
+```
+
+```
+added 1 package, and audited 2 packages in 782ms
+found 0 vulnerabilities
+[model call follows, unrelated to the install]
+```
+
+Copying `settings.json` into `~/.pi/agent/` does not by itself fetch the packages it
+declares. pi checks for missing packages at its own startup instead, and it did that here on
+a plain `-p` run, before the prompt was even sent. No trust prompt appeared, because trust
+only gates project-local files (`.pi/settings.json` and friends); `~/.pi/agent/settings.json`
+is outside that boundary.
+
+This is enough to make `personal/settings.json`'s `packages` entry work unattended, but the
+fetch happens at the first `pi` invocation inside the container, which is whenever the
+developer types something, not at container creation. A first prompt that also has to hit the
+npm registry is a slower and less predictable first prompt. `post-create.sh` now runs
+`pi update --extensions` right after copying `settings.json`, so the fetch happens during
+`postCreateCommand` instead, same as pi's own install in `install-pi.sh`.
