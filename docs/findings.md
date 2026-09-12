@@ -279,3 +279,40 @@ after `pi update --extensions`. The model call is expected to fail (no real prom
 credentials may not even be configured yet at this point in the container's life); only the
 side effect, the sync, is wanted. `--no-session` keeps that throwaway run out of
 `.pi/sessions/`.
+
+## F17 — claude-plugins.json cannot declare a partially-installable plugin
+
+```text
+● claude-plugins-official [user]
+  ⊘ superpowers (failed) {no longer installable}
+Reconcile: 1 failure
+```
+
+`pi-claude-marketplace`'s own `/claude:plugin install --partial <plugin>` flag exists because
+some plugins declare components the Pi bridge cannot map (here, unsupported hooks -- see
+[hooks-compatibility.md](https://github.com/acolomba/pi-claude-marketplace/blob/main/docs/hooks-compatibility.md)
+in that project). The declarative config has no equivalent. Reading the installed package's
+source (`persistence/config-io.ts`, v0.18.3) settles it: a `plugins` entry's schema is
+
+```ts
+const PLUGIN_CONFIG_ENTRY_SCHEMA = Type.Object({
+  enabled: Type.Optional(Type.Boolean()),
+});
+```
+
+no `partial` field, and the reconcile apply path (`orchestrators/reconcile/apply.ts`) never
+passes `partial: true` to `installPlugin` -- that option is wired only to the `--partial` CLI
+flag. A plugin that needs it fails reconcile every time, on every container, forever; this is
+not a misconfiguration, it is a gap in the extension as published.
+
+No devcontainer-side fix exists for this: `state.json` (the record that would mark the plugin
+installed) bakes in absolute host paths at install time, so copying one machine's file into
+the personal layer or another container plants stale paths rather than working around the
+gap.
+
+Workaround: leave such a plugin out of `claude-plugins.json`'s `plugins` map (the marketplace
+entry alone installs fine) and run `/claude:plugin install --partial <plugin>@<marketplace>`
+once, interactively, per container. The record then lives in
+`~/.pi/agent/pi-claude-marketplace/state.json`, covered by the F15 volume, so it survives
+rebuilds of that same container until the volume is removed. A fresh volume (or a project
+nobody has opened yet) needs the manual step again.

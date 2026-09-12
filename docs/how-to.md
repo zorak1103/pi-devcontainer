@@ -145,7 +145,7 @@ order between the two.
 
 [`pi-claude-marketplace`](https://github.com/acolomba/pi-claude-marketplace) loads Claude
 Code plugin marketplaces (commands, skills, agents, hooks, MCP servers) into pi. Worked
-example: the `superpowers` skill library, from the official marketplace.
+example: `commit-commands`, from the official marketplace.
 
 1. Add the package. `pi-subagents` and `pi-mcp-adapter` are optional but recommended (agent-
    and MCP-backed plugins need them):
@@ -166,7 +166,7 @@ example: the `superpowers` skill library, from the official marketplace.
          "autoupdate": true
        }
      },
-     "plugins": { "superpowers@claude-plugins-official": {} }
+     "plugins": { "commit-commands@claude-plugins-official": {} }
    }
    ```
 
@@ -179,12 +179,33 @@ example: the `superpowers` skill library, from the official marketplace.
    only the first rebuild pays the clone cost.
 
 4. Confirm inside pi: `/claude:plugin list --installed`, then use the plugin (here, any
-   `superpowers` skill).
+   `commit-commands` command).
 
 To add a marketplace pi-claude-marketplace does not know about yet, use
 `/claude:plugin marketplace add <owner>/<repo>` interactively once, then copy the resulting
 `~/.pi/agent/claude-plugins.json` back into `~/.pi/devcontainer/claude-plugins.json` to make
 it permanent, the same pattern as "Make an extension's own config file persist" above.
+
+### Plugins that need `--partial`
+
+A plugin that declares unsupported components (an unmappable hook, an LSP server, a theme --
+listed with `/claude:plugin list --partial`) cannot go in `claude-plugins.json`'s `plugins`
+map at all: the declarative config has no field for `--partial`, so reconcile always attempts
+a full install and fails with `(failed) {no longer installable}`, every time, on every
+container
+([findings.md#f17](findings.md#f17--claude-pluginsjson-cannot-declare-a-partially-installable-plugin)).
+`superpowers`, for example, needs it for its hooks.
+
+Leave that plugin out of the declarative config (its marketplace can still be declared) and
+install it once, interactively, per container:
+
+```text
+/claude:plugin install --partial superpowers@claude-plugins-official
+```
+
+The resulting record lives in `~/.pi/agent/pi-claude-marketplace/state.json`, covered by the
+same volume as the clones, so it survives rebuilds of that container. A fresh volume needs
+the command again.
 
 ## Carry your own tools, skills and context across every project
 
