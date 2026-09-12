@@ -208,6 +208,78 @@ The resulting record lives in `~/.pi/agent/pi-claude-marketplace/state.json`, co
 same volume as the clones, so it survives rebuilds of that container. A fresh volume needs
 the command again.
 
+### Remove a marketplace or plugin
+
+Interactively:
+
+```text
+/claude:plugin uninstall <plugin>@<marketplace>
+/claude:plugin marketplace remove <marketplace>   # also uninstalls every plugin from it
+/reload
+```
+
+To make the removal stick across rebuilds, delete the corresponding entry from
+`~/.pi/devcontainer/claude-plugins.json` too (or delete the whole file to drop everything
+declared this way). Otherwise the next reconcile re-installs whatever the file still
+declares; a `claude-plugins.json` entry works like a `packages` entry in `settings.json` in
+that respect, not like a one-off command.
+
+## Diagnose a reconcile failure
+
+Applies to any personal-layer entry that reconciles automatically: `settings.json`
+`packages`, `claude-plugins.json` marketplaces and plugins, and any future package with the
+same shape. `post-create.sh` never lets a failure here abort the container
+([F12](findings.md#f12--one-unresolvable-tool-aborted-the-whole-container-creation)'s
+rationale extends past `mise`), so the only sign at container-creation time may be a
+swallowed warning or nothing at all; whatever failed just does not exist yet.
+
+1. Rerun the command directly instead of reading the postCreate log: `pi update
+   --extensions` for packages, or start `pi` normally (the same reconcile that
+   `--offline --no-session -p "noop"` triggers) for `claude-plugins.json`. The real error
+   and its closed-set reason token (`{no longer installable}`, `{not in manifest}`, ...)
+   print directly.
+2. Search the package's own docs for that exact token. These reason tokens are the
+   package's own vocabulary, not pi's, and are usually documented or at least greppable in
+   its README or CHANGELOG. This is how [F17](findings.md#f17--claude-pluginsjson-cannot-declare-a-partially-installable-plugin)
+   was found.
+3. Grep the installed source if the docs fall short. A pi package fetched from npm or
+   git is not necessarily minified; `~/.pi/agent/npm/node_modules/<pkg>/` (or the project's
+   `.pi/npm/node_modules/<pkg>/` for a project-scoped install) often contains full
+   TypeScript, and the exact failure string usually appears in exactly one place.
+4. Check the package's own state file for a stale or conflicting record, if it keeps
+   one outside `settings.json` (`~/.pi/agent/pi-claude-marketplace/state.json`, for
+   example). A previous partial success can leave a record that makes a later reconcile
+   behave differently than a clean run would.
+
+## Add a volume for a package's own state directory
+
+A package that persists anything under `~/.pi/agent/` outside `~/.pi/agent/npm/` is invisible
+to the existing `pi-dc-<project>-pinpm` volume, so a container rebuild silently discards it
+and redoes whatever produced it. `pi-claude-marketplace`'s marketplace/plugin clones are the
+worked example ([F15](findings.md#f15--pi-claude-marketplace-clones-outside-the-npm-volume)).
+
+1. Confirm it actually happens before adding anything: declare the package, reconcile it
+   (see the diagnose recipe above for how to force that), then look for new paths under
+   `~/.pi/agent/` beyond `npm/`. The isolated `PI_CODING_AGENT_DIR=/tmp/agent pi ...`
+   technique behind F14 through F17 works outside a container too, so this does not require
+   a rebuild to check.
+2. Add a second per-project volume in `devcontainer.json`:
+
+   ```json
+   "source=pi-dc-${localWorkspaceFolderBasename}-<name>,target=<path>,type=volume"
+   ```
+
+3. Add the same path to the `Dockerfile`'s `mkdir`/`chown` block. Not optional: a volume
+   on a path absent from the base image is created root-owned, and there is no `sudo` to fix
+   it afterward ([F8](findings.md#f8--named-volumes-on-paths-absent-from-the-image-are-created-root-owned)).
+4. Add the path to `scripts/verify.sh`'s `MOUNTS` list so the ownership/writability check
+   covers it.
+5. Document it in `architecture.md`'s per-project volumes table.
+
+Skip this without step 1's confirmation: a volume mounted on a path nothing writes to is dead
+weight, and every added volume is one more thing `verify.sh` and a new contributor have to
+understand.
+
 ## Carry your own tools, skills and context across every project
 
 Already-working examples ship in [`personal/`](../personal/); copy what you want into
