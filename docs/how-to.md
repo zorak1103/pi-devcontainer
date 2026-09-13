@@ -295,6 +295,30 @@ Already-working examples ship in [`personal/`](../personal/); copy what you want
 All of it is copied, not mounted, so editing the host file and rebuilding is the update
 mechanism; see [architecture.md](architecture.md#three-layers).
 
+## Update an existing project's `.devcontainer`
+
+For a project that already adopted the template and now needs a newer version of it (new
+hardening flag, new volume, a fixed script, ...).
+
+```bash
+./scripts/init-project.sh --update /path/to/your/go-project
+```
+
+This moves the project's current `.devcontainer/` to `.devcontainer.bak-<timestamp>/` and
+installs a fresh copy of the template, then prints a `diff -ru` between the two. It is a
+backup-and-overwrite, not a merge: any project-specific edit to a template file — most often
+a `remoteEnv` entry (see ["Add an MCP server"](#add-an-mcp-server) above) or an
+`apt-packages` feature (see [extending.md](extending.md#system-packages)) added to
+`devcontainer.json` — is lost from the fresh copy and needs to be reapplied by hand from the
+printed diff. Once done, remove the backup:
+
+```bash
+rm -rf /path/to/your/go-project/.devcontainer.bak-*
+```
+
+Refuses to run if the project has no `.devcontainer` yet; use the plain (non-`--update`) form
+for a first-time install.
+
 ## Set up a new project from this template
 
 ```bash
