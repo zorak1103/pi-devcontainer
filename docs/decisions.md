@@ -41,8 +41,11 @@ requires a registry and a release process before anything has proven itself; and
 with a Feature, which is the right end state but premature before the mount strategy is
 settled.
 
-**Cost:** updating the template in a project is a re-copy. `install-pi.sh` is already written
-as a standalone script so the move to a Feature is mechanical.
+**Cost:** updating the template in a project is a re-copy. `scripts/init-project.sh --update`
+automates it (backup, fresh copy, diff against the backup), but reapplying any
+project-specific edit to `devcontainer.json` from that diff is still manual; there is no
+merge. `install-pi.sh` is already written as a standalone script so the move to a Feature is
+mechanical.
 
 ## D4 — How tools that are not in the base image get in
 
