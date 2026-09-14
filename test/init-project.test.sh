@@ -96,4 +96,23 @@ else
 fi
 rm -rf "$BAD_TARGET"
 
+# Java template installs correctly too, including the shared files
+JAVA_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh java "$JAVA_TARGET" >/dev/null 2>&1
+check "java install exit status" "$?" "0"
+for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh post-create.sh; do
+  if [ -f "$JAVA_TARGET/.devcontainer/$f" ]; then echo "  PASS  java: copied $f"; else echo "  FAIL  java: missing $f"; fail=1; fi
+done
+if grep -q '"name": "java-pi"' "$JAVA_TARGET/.devcontainer/devcontainer.json"; then
+  echo "  PASS  java: devcontainer.json names itself java-pi"
+else
+  echo "  FAIL  java: devcontainer.json missing/wrong name field"; fail=1
+fi
+if grep -q 'FROM mcr.microsoft.com/devcontainers/java:21-bookworm' "$JAVA_TARGET/.devcontainer/Dockerfile"; then
+  echo "  PASS  java: Dockerfile FROM line correct"
+else
+  echo "  FAIL  java: Dockerfile FROM line wrong"; fail=1
+fi
+rm -rf "$JAVA_TARGET"
+
 exit $fail
