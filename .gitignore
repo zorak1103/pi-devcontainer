@@ -1,4 +1,5 @@
 test/fixture-go/.devcontainer/
+test/fixture-java/.devcontainer/
 test/fixture-go/.pi/
 test/fixture-go/go.sum
 test/fixture-go/fixture
