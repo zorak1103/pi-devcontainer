@@ -14,15 +14,16 @@ there.
 ## Docker
 
 Install Docker Desktop and make sure it is running before opening the project. The container
-runs `linux/amd64`; on an ARM host Docker Desktop emulates, which works but is slow. The Go
-image also publishes `arm64`, so changing the `FROM` line in `.devcontainer/Dockerfile` is
-worth it there.
+runs `linux/amd64`; on an ARM host Docker Desktop emulates, which works but is slow. Both the
+Go and Java base images also publish `arm64`, so changing the `FROM` line in
+`.devcontainer/Dockerfile` is worth it there.
 
 ## VS Code
 
-Install the **Dev Containers** extension (`ms-vscode-remote.remote-containers`). The Go
-extension does not need to be installed on the host: the base image's metadata requests
-`golang.Go` automatically inside the container.
+Install the **Dev Containers** extension (`ms-vscode-remote.remote-containers`). The
+language extension does not need to be installed on the host: each base image's metadata
+requests the matching one automatically inside the container (`golang.Go` for Go,
+`vscjava.vscode-java-pack` for Java).
 
 ## The API key
 

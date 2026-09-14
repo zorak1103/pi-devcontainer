@@ -31,17 +31,18 @@ nothing more. The model is about blast radius, not secrecy. See
 ### Network egress is unrestricted
 
 An agent that can reach the network can exfiltrate. Egress filtering was considered and
-rejected: it breaks Go module proxies and private registries, and the failure surfaces as a
-cryptic mid-run timeout rather than a clear block. A control that gets disabled after two
-days of friction is worse than no control. See
-[D2](decisions.md#d2--what-the-hardening-defends-against).
+rejected: it breaks language package registries (Go module proxies, Maven/Gradle
+repositories) and private registries, and the failure surfaces as a cryptic mid-run timeout
+rather than a clear block. A control that gets disabled after two days of friction is worse
+than no control. See [D2](decisions.md#d2--what-the-hardening-defends-against).
 
-### The shared module cache crosses project boundaries
+### The shared dependency cache crosses project boundaries
 
-`pi-dc-gomod` and `pi-dc-gobuild` are shared across all projects for rebuild speed. A
-malicious agent in one project could in principle poison a cached module for another.
-Content addressing and `go.sum` catch tampering, which is what makes the trade acceptable.
-It is still a trade. See [D8](decisions.md#d8--what-survives-a-rebuild).
+`pi-dc-gomod`/`pi-dc-gobuild` (Go) and `pi-dc-m2`/`pi-dc-gradle` (Java) are shared across all
+projects for rebuild speed. A malicious agent in one project could in principle poison a
+cached dependency for another. Content addressing and Go's `go.sum` (or Maven/Gradle's own
+checksum verification against the source repository) catch tampering, which is what makes the
+trade acceptable. It is still a trade. See [D8](decisions.md#d8--what-survives-a-rebuild).
 
 ### Trust is lowered inside the container
 

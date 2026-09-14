@@ -47,6 +47,11 @@ project-specific edit to `devcontainer.json` from that diff is still manual; the
 merge. `install-pi.sh` is already written as a standalone script so the move to a Feature is
 mechanical.
 
+Adopting a project now names its language explicitly: `init-project.sh <go|java> <dir>`.
+`--update` does not repeat it — it reads the language back out of the existing
+`devcontainer.json`'s `name` field, so a project that already exists never needs to state its
+language a second time.
+
 ## D4 — How tools that are not in the base image get in
 
 **Chosen:** mise as a single tool plane. Tools are declared in TOML and installed at container
@@ -92,6 +97,25 @@ the shims come first on `PATH`.
 **Cost:** the image is about a gigabyte, and its metadata dictates part of the security
 posture ([F1](findings.md#f1--the-go-image-re-adds-sys_ptrace-and-seccompunconfined)).
 
+## D6b — Where the Java toolchain comes from
+
+**Chosen:** the official `mcr.microsoft.com/devcontainers/java:21-bookworm` image, plus the
+`ghcr.io/devcontainers/features/java:1` feature with `installMaven: true, installGradle: true`.
+
+Rejected: Maven-only or Gradle-only. Go has one toolchain by convention; the JVM ecosystem
+does not force that choice, and picking one for the template would just relocate the decision
+onto every adopter who uses the other one. Also rejected: installing Maven/Gradle through
+mise instead of the feature — the base image does not bundle either by default (measured, see
+[findings.md#f18](findings.md#f18--the-java-image-does-not-bundle-maven-or-gradle-by-default)),
+and the feature is the same "trust the official image" reasoning as D6 rather than a
+different one.
+
+JDK 21 (LTS) is the image default; a project pins a different version the same way Go
+projects pin `go` in `mise.toml` — shims come first on `PATH` and win.
+
+**Cost:** one more feature to resolve at build time; a few hundred extra megabytes for two
+build tools most Java projects only use one of.
+
 ## D7 — Delve and capabilities
 
 **Chosen:** drop everything; accept the one capability the image forces back.
@@ -117,6 +141,11 @@ and tokens.
 project could in principle poison it for another. The cache is content-addressed and `go.sum`
 catches tampering, which is what makes the trade acceptable. It is a trade, not a non-issue.
 
+Java's `pi-dc-m2` and `pi-dc-gradle` follow the same shared-cache reasoning as `pi-dc-gomod`/
+`pi-dc-gobuild`. `pi-dc-mise` itself is shared across languages too, not just across Go
+projects — see the known limitation in [architecture.md](architecture.md#volumes) about not
+creating two containers at the same time.
+
 Measured payoff: a full container rebuild with warm caches takes about ten seconds.
 
 ## D9 — Language and license
@@ -125,6 +154,23 @@ Measured payoff: a full container rebuild with warm caches takes about ten secon
 
 **Cost:** none worth noting. The design conversation happened in German; the repository is
 for whoever finds it.
+
+## D10 — Sharing files across language templates
+
+**Chosen:** `install-pi.sh`, `post-create.sh` and `sync-personal.js` — genuinely
+language-independent — live once in `templates/_shared/.devcontainer/`, copied into a
+language template's output by `init-project.sh` before the language-specific files.
+
+Rejected: duplicating them per language template. This was the status quo for Go alone, and
+it had already produced real drift before Java even existed:
+`test/fixture-go/.devcontainer/post-create.sh` fell behind its own template because nothing
+asserted they matched.
+
+**Cost:** `devcontainer.json`/`Dockerfile` still cannot be shared this way — the Dev Container
+spec has no include/extends mechanism for arbitrary JSON — so `PI_VERSION`, the hardening
+`runArgs`, and the `containerEnv`/`remoteEnv`/lifecycle-hook values remain duplicated inside
+each language's `devcontainer.json`. `test/templates.test.sh` asserts they stay identical
+instead of trusting that by hand.
 
 ## Supplementary decisions
 

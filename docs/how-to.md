@@ -324,7 +324,7 @@ for a first-time install.
 ```bash
 git clone https://github.com/zorak1103/pi-devcontainer
 cd pi-devcontainer
-./scripts/init-project.sh /path/to/your/go-project
+./scripts/init-project.sh go /path/to/your/go-project      # or: java /path/to/your/java-project
 ```
 
 Full walkthrough, including the `.gitignore` entries it prints and the API key setup, in the

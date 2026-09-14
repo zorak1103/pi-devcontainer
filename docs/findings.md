@@ -316,3 +316,53 @@ once, interactively, per container. The record then lives in
 `~/.pi/agent/pi-claude-marketplace/state.json`, covered by the F15 volume, so it survives
 rebuilds of that same container until the volume is removed. A fresh volume (or a project
 nobody has opened yet) needs the manual step again.
+
+## F18 — The Java image does not bundle Maven or Gradle by default
+
+```bash
+docker run --rm mcr.microsoft.com/devcontainers/java:21-bookworm bash -lc 'command -v mvn gradle'
+```
+
+Both report nothing: `mvn`/`gradle` are absent even though SDKMAN's candidate directories for
+both exist on `PATH` (`/usr/local/sdkman/candidates/{maven,gradle}/current/bin`) — they are
+just empty. This mirrors F5 for the Go image almost exactly: there Node/npm sat behind an
+unconfigured `nvm`, here Maven/Gradle sit behind an unconfigured SDKMAN.
+
+Resolution: `templates/java/.devcontainer/devcontainer.json` adds
+`ghcr.io/devcontainers/features/java:1` explicitly with `installMaven: true, installGradle:
+true, version: "none"`. `version: "none"` stops the feature from installing a second JDK next
+to the one already in the base image. Verified in a container built from this configuration:
+`mvn -version` reports Maven 3.9.16, `gradle -version` reports Gradle 9.7.1, `java -version`
+still reports the base image's `21.0.12.1` (no second JDK installed), and both resolve from a
+non-interactive `bash -c` — the shape pi's `bash` tool uses. One consequence for
+`scripts/verify.sh`: Gradle resolves from its SDKMAN path
+(`/usr/local/sdkman/candidates/gradle/current/bin/gradle`), not a mise shim, so its
+reachability check asserts the command resolves at all rather than a specific shim path.
+
+## F19 — The Java image forces back no capability, unlike Go's `SYS_PTRACE` (F1)
+
+```bash
+docker inspect mcr.microsoft.com/devcontainers/java:21-bookworm \
+  --format '{{index .Config.Labels "devcontainer.metadata"}}'
+```
+
+The label carries `remoteUser: vscode` and feature-recommended VS Code settings/extensions,
+but no `capAdd` or `securityOpt` entries. Measured inside a container built with
+`runArgs: ["--cap-drop=ALL", "--security-opt", "no-new-privileges"]` and no other flags:
+
+```
+CapBnd: 0000000000000000
+CapEff: 0000000000000000
+```
+
+An **empty** capability ceiling — not the one bit (`0000000000080000`, `SYS_PTRACE`) that Go's
+image metadata forces back. Consequence: Java needs no equivalent to decision D7's documented
+relaxation; the hardening applies at full strength with no exception to note.
+
+## F20 — Volume mount points behave identically to F8 for the Java image
+
+The same `mkdir -p ... && chown -R vscode:vscode ...` pattern from `templates/go/.devcontainer/Dockerfile`
+(F8) was verified against a container built from `templates/java/.devcontainer/Dockerfile`:
+every one of the seven mount points (`~/.m2/repository`, `~/.gradle`, `~/.local/share/mise`,
+`~/.pi/agent/npm`, `~/.pi/agent/pi-claude-marketplace`, `~/.config`, `~/.history`) came up
+owned by `vscode` and writable. No language-specific surprise here; the fix generalizes.
