@@ -8,3 +8,6 @@ test/fixture-go/fixture
 # This does not affect the two files from 2026-09-10 already tracked before this rule existed
 # (git ignores never untrack an already-tracked path).
 docs/superpowers/
+
+# subagent-driven-development scratch workspace (ledger, briefs, review packages)
+.superpowers/
