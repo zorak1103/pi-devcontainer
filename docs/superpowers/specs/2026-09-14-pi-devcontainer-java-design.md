@@ -54,7 +54,14 @@ Concretely, the change must:
 | J9 | Fixture maintenance | `test/fixture-go/.devcontainer` and the new `test/fixture-java/.devcontainer` are asserted (not just written) to be exactly what `init-project.sh` produces from the current templates, via a new test | Continuing to hand-maintain fixtures — this is what let `post-create.sh` drift undetected (section 4) |
 | J10 | Documentation structure | Java specifics are woven into the existing docs (`architecture.md`, `decisions.md`, `how-to.md`, `extending.md`) next to their Go equivalents | A dedicated `docs/java.md` — would fork the three-layer mental model into two parallel descriptions of the same architecture |
 
-## 3. A finding made while designing this
+## 3. Findings made while designing this
+
+Guided by the project's own measure-before-deciding methodology (`docs/findings.md`), the
+open questions this design started with were checked against the real
+`mcr.microsoft.com/devcontainers/java:21-bookworm` image and a live container before
+finalizing section 5's artifacts, rather than assumed.
+
+### 3.1 Fixture drift (not Java-specific)
 
 `test/fixture-go/.devcontainer/post-create.sh` has already drifted from
 `templates/go/.devcontainer/post-create.sh`: the fixture is missing the `mcp.json`/
@@ -62,8 +69,40 @@ Concretely, the change must:
 has had since a later commit. This happened because the fixture is a hand-maintained copy
 with no test enforcing equality with the template. It is direct evidence for J4 (extract,
 don't duplicate) and J9 (assert fixtures match templates); fixing it is in scope for this
-change (section 5a) and is not itself a Java-specific fix — Go's fixture gets corrected as a
+change (section 5.5a) and is not itself a Java-specific fix — Go's fixture gets corrected as a
 side effect of adding the assertion.
+
+### 3.2 J5 resolved: Maven and Gradle are not bundled by default
+
+Measured directly (`docker run … mvn`, `… gradle`): the base image ships Java 21 (OpenJDK,
+Microsoft build) and SDKMAN with `maven`/`gradle` candidate directories present but *empty*
+— `mvn`/`gradle` both report `not found`. This mirrors F5 for the Go image almost exactly
+(there it was Node/npm behind an unconfigured `nvm`; here it is Maven/Gradle behind an
+unconfigured SDKMAN).
+
+**Resolution:** add `ghcr.io/devcontainers/features/java:1` explicitly, with
+`installMaven: true, installGradle: true, version: "none"`. `version: "none"` stops the
+feature from installing a second JDK alongside the one already in the base image. Verified
+in a real container built from this exact configuration: `mvn -version` reports Maven
+3.9.16, `gradle -version` reports Gradle 9.7.1, both resolve from a non-interactive
+`bash -c` (the shape pi's `bash` tool uses), and `java -version` still reports the base
+image's `21.0.12.1`, confirming no second JDK was installed. Section 5.3's `devcontainer.json`
+reflects this.
+
+### 3.3 J5/D7-parallel resolved: no capability is forced back
+
+Go's image metadata forces `SYS_PTRACE` back in regardless of `--cap-drop=ALL` (F1),
+leaving one bit in the capability ceiling. Measured the same way for Java, in the container
+built in 3.2: `grep CapBnd /proc/self/status` reports `0000000000000000` — an **empty**
+ceiling, not one bit. The Java image's metadata carries no `capAdd`/`securityOpt` entries.
+Consequence: unlike Go's D7, Java needs no equivalent documented relaxation; the hardening
+applies at full strength. `sudo -n true` still correctly fails (`no-new-privileges`
+unaffected by this), and all measured volume mount points came up owned by `vscode` and
+writable, confirming the Dockerfile's `mkdir`/`chown` block (5.2) works the same way F8's
+fix does for Go.
+
+These three findings get written up as new entries in `docs/findings.md` during
+implementation (section 6's documentation table), the same way F1–F8 were for Go.
 
 ## 4. Architecture changes
 
@@ -236,13 +275,10 @@ RUN mkdir -p /home/vscode/.m2/repository \
 ENV PATH="/home/vscode/.local/share/mise/shims:${PATH}"
 ```
 
-**Flagged for measurement during implementation, not asserted here as fact:** whether
-`mcr.microsoft.com/devcontainers/java:21-bookworm` bundles both Maven and Gradle by default
-(the assumption behind J5) or needs `ghcr.io/devcontainers/features/java:1` with
-`installMaven`/`installGradle` added explicitly; and whether the image's metadata label
-forces back any capability the way Go's forced back `SYS_PTRACE` (F1). Both get resolved the
-way F1–F8 were: run it, measure it, write the finding, adjust the artifact if the assumption
-was wrong.
+Confirmed in 3.2/3.3 against a live container built from this exact `Dockerfile`: all seven
+mount points come up `vscode`-owned and writable, and the capability ceiling is empty
+(`CapBnd: 0000000000000000`) — Java needs no `SYS_PTRACE`-style relaxation the way Go does
+(F1/D7).
 
 ### 5.3 `templates/java/.devcontainer/devcontainer.json`
 
@@ -252,6 +288,11 @@ was wrong.
   "build": { "dockerfile": "Dockerfile" },
 
   "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "none",
+      "installMaven": true,
+      "installGradle": true
+    },
     "ghcr.io/devcontainers/features/node:2": { "version": "22" },
     "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
@@ -285,23 +326,19 @@ was wrong.
 
   "initializeCommand": ["node", ".devcontainer/sync-personal.js"],
   "onCreateCommand": "bash .devcontainer/install-pi.sh",
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
-
-  "customizations": {
-    "vscode": { "extensions": ["vscjava.vscode-java-pack"] }
-  }
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
 }
 ```
 
 `PI_VERSION`, `runArgs`, the rest of `containerEnv`, `remoteEnv`, and the three lifecycle
 hooks are intentionally byte-identical to `templates/go/.devcontainer/devcontainer.json`.
-The drift-check test in section 5c enforces that identity mechanically; nobody has to
+The drift-check test in section 5.5b enforces that identity mechanically; nobody has to
 remember it by hand.
 
-`customizations.vscode.extensions` is a placeholder for whatever the actual image metadata
-turns out not to already cover, the same way Go's `golang.Go` turned out to be unnecessary
-once F5 was measured (the image's own metadata already registered it). Verify before
-committing to this line.
+**No `customizations` block**, unlike Go's (which turns off `go.toolsManagement.checkForUpdates`).
+The image's own metadata label already registers `vscjava.vscode-java-pack` and
+`java.import.gradle.java.home` (confirmed via `docker inspect` in 3.2/3.3), the same way
+Go's `golang.Go` extension arrives via metadata without a `customizations` entry (F5).
 
 Project layer convention (parallel to Go's `mise.toml` with `go = "1.27"`):
 
@@ -452,7 +489,7 @@ maintain, per J5/section 1's non-goals.
 | `docs/how-to.md` | "Set up a new project" and "Update an existing project" recipes updated to the new command syntax. |
 | `docs/extending.md` | "A new language target" rewritten: a template contributes only `Dockerfile` + `devcontainer.json` under `templates/<lang>/.devcontainer/`; it **must** set `"name": "<lang>-pi"` (now load-bearing, J3/J8); the three shared files must not be duplicated; `init-project.sh`'s language `case` and `verify.sh`'s `MOUNTS`/build-check `case` need the new language added. |
 | `docs/comparison.md`, `docs/threat-model.md`, `docs/providers.md`, `docs/setup-windows.md` | No content change expected; re-checked during implementation for stray Go-only assumptions. |
-| `docs/findings.md` | Gains new F-numbered entries only once the corresponding measurements are actually taken during implementation (the two items flagged in section 5.2). Not written speculatively here. |
+| `docs/findings.md` | Gains new F-numbered entries for the three measurements in section 3.2/3.3 (Maven/Gradle needing the explicit feature, the empty capability ceiling, the confirmed volume ownership), written up during implementation the way F1–F8 were. |
 | `test/docs.test.sh` | `REQUIRED` list unchanged — no new doc file is introduced (J10). |
 
 ## 7. Rollout
@@ -480,5 +517,6 @@ Work is complete when:
 - `scripts/verify.sh test/fixture-go` and `scripts/verify.sh test/fixture-java` both pass
   against real containers, including the language-specific V4 block and the shared V1–V3,
   V5–V9 checks.
-- Every measurement-pending item in section 5.2 has either been confirmed or has produced a
-  new `docs/findings.md` entry and a corresponding artifact adjustment.
+- The three measurements from section 3.2/3.3 have each produced a `docs/findings.md` entry
+  during implementation, cross-referenced from `templates/java/.devcontainer/Dockerfile` and
+  `devcontainer.json` the way `docs/findings.md#f8` is cross-referenced from Go's.
