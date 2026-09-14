@@ -27,6 +27,10 @@ cd pi-devcontainer
 
 (Windows: run these in Git Bash, not PowerShell or cmd, since the scripts are `.sh` files.)
 
+Already using this template? `init-project.sh <dir>` is now `init-project.sh <go|java> <dir>`
+— the language argument became mandatory when Java support was added. `--update` is
+unaffected: it reads the language back out of your project's existing `devcontainer.json`.
+
 Add the two lines the script prints to your project's `.gitignore`, set your API key once
 (see [docs/setup-windows.md](docs/setup-windows.md); on Windows this needs a VS Code
 restart; for OpenRouter or another provider, see [docs/providers.md](docs/providers.md)),
@@ -55,12 +59,13 @@ inside and untouched outside. Details in [docs/architecture.md](docs/architectur
 ## Verifying an installation
 
 ```bash
-./scripts/verify.sh /path/to/your/go-project
+./scripts/verify.sh /path/to/your/project    # Go or Java, detected from its devcontainer.json
 ```
 
-30 checks against the live container: pi's version, the packages, tools reachable from a
-*non-interactive* shell, a real Go build, the capability ceiling, that `sudo` is refused,
-that the API key is absent from `docker inspect`, and that every volume is writable.
+~30 checks against the live container: pi's version, the packages, tools reachable from a
+*non-interactive* shell, a real build (`go build` or `mvn compile`), the capability ceiling,
+that `sudo` is refused, that the API key is absent from `docker inspect`, and that every
+volume is writable.
 
 `verify.sh` deliberately makes **no model call**. One test is therefore manual:
 

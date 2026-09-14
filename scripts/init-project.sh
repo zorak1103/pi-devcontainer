@@ -16,10 +16,13 @@ usage() {
 
 # Reads the "name" field ("go-pi" / "java-pi") out of an existing devcontainer.json and maps
 # it back to a template directory name. Hard error rather than a guess: a wrong guess here
-# would silently replace a project's template with the wrong language's.
+# would silently replace a project's template with the wrong language's. The `|| true` on the
+# extraction pipeline matters under `set -euo pipefail`: without it, a devcontainer.json with
+# no matching "name" field would fail the pipeline itself (empty grep, pipefail) and exit
+# before ever reaching this function's own, more helpful error message below.
 detect_lang() {
   local name
-  name="$(grep -o '"name"[[:space:]]*:[[:space:]]*"[a-z]*-pi"' "$1" | grep -o '"[a-z]*-pi"' | tr -d '"')"
+  name="$(grep -o '"name"[[:space:]]*:[[:space:]]*"[a-z]*-pi"' "$1" | grep -o '"[a-z]*-pi"' | tr -d '"')" || true
   case "$name" in
     go-pi)   echo go ;;
     java-pi) echo java ;;
@@ -47,13 +50,13 @@ if [ "${1:-}" = "--update" ]; then
     echo "ERROR: $TARGET/.devcontainer/devcontainer.json does not exist — run without --update first" >&2
     exit 1
   }
-  LANG="$(detect_lang "$TARGET/.devcontainer/devcontainer.json")"
+  TPL_LANG="$(detect_lang "$TARGET/.devcontainer/devcontainer.json")"
 
   BAK="$TARGET/.devcontainer.bak-$(date +%Y%m%d%H%M%S)"
   mv "$TARGET/.devcontainer" "$BAK"
-  install_template "$LANG" "$TARGET/.devcontainer"
+  install_template "$TPL_LANG" "$TARGET/.devcontainer"
 
-  echo "Template updated ($LANG). Previous .devcontainer moved to $BAK."
+  echo "Template updated ($TPL_LANG). Previous .devcontainer moved to $BAK."
   echo
   echo "Differences (old -> new):"
   diff -ru "$BAK" "$TARGET/.devcontainer" || true
@@ -68,7 +71,7 @@ EOF
 fi
 
 case "${1:-}" in
-  go|java) LANG="$1" ;;
+  go|java) TPL_LANG="$1" ;;
   *) usage ;;
 esac
 TARGET="${2:?usage: init-project.sh <go|java> <target-dir>}"
@@ -79,7 +82,7 @@ TARGET="${2:?usage: init-project.sh <go|java> <target-dir>}"
   exit 1
 }
 
-install_template "$LANG" "$TARGET/.devcontainer"
+install_template "$TPL_LANG" "$TARGET/.devcontainer"
 
 cat <<'EOF'
 Template installed. Add these lines to the project's .gitignore:

@@ -8,7 +8,9 @@ JAVA=templates/java/.devcontainer/devcontainer.json
 fail=0
 
 # Extracts a "key": value line and strips a possible trailing comma, so JSON's
-# last-property-has-no-comma rule can't cause a false mismatch.
+# last-property-has-no-comma rule can't cause a false mismatch. Assumes each key's value sits
+# on one line (true for every field checked below); a value ever reformatted across multiple
+# lines would only compare its first line here.
 field() { grep -o "\"$2\"[[:space:]]*:.*" "$1" | sed 's/,[[:space:]]*$//' | head -n1; }
 
 for key in runArgs PI_VERSION PI_CODING_AGENT_SESSION_DIR HISTFILE LANG COLORTERM \
