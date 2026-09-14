@@ -10,8 +10,10 @@ The agent inside the container runs arbitrary shell commands on your behalf, inc
 it got wrong or was tricked into. The goal is bounding what that can *touch*.
 
 - Runs as non-root (`vscode`, uid 1000). See [D2](decisions.md#d2--what-the-hardening-defends-against).
-- Capabilities drop to one. `--cap-drop=ALL`, with `SYS_PTRACE` forced back by the base
-  image's own metadata. See [F1](findings.md#f1--the-go-image-re-adds-sys_ptrace-and-seccompunconfined).
+- Capabilities drop to at most one. `--cap-drop=ALL`, with `SYS_PTRACE` forced back by the Go
+  image's own metadata; the Java image forces nothing back, so its ceiling is fully empty. See
+  [F1](findings.md#f1--the-go-image-re-adds-sys_ptrace-and-seccompunconfined) and
+  [F19](findings.md#f19--the-java-image-forces-back-no-capability-unlike-gos-sys_ptrace-f1).
 - `no-new-privileges` disables `sudo`, even though the binary is present. See
   [F4](findings.md#f4--no-new-privileges-disables-sudo).
 - The API key does not appear in `docker inspect`. It reaches the container only through
