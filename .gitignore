@@ -3,6 +3,7 @@ test/fixture-java/.devcontainer/
 test/fixture-go/.pi/
 test/fixture-go/go.sum
 test/fixture-go/fixture
+test/fixture-java/target/
 .devcontainer/.personal/
 
 # Planning artifacts from the brainstorming/writing-plans skills stay local, not in the repo.
