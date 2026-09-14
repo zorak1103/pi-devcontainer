@@ -36,9 +36,10 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
   echo "WARNING: ANTHROPIC_API_KEY is empty — see docs/setup-windows.md"
 
 # Bind-mounted files appear as root-owned to the container user, so git refuses to touch
-# the workspace ("dubious ownership"). That breaks `go build` VCS stamping and the VS Code
-# git integration. Register the workspace and its ancestors up to /workspaces — narrower
-# than the usual wildcard, and it covers the case where the mount root is the repo root.
+# the workspace ("dubious ownership"). That breaks language-level VCS stamping (Go's `go
+# build`, for example) and the VS Code git integration. Register the workspace and its
+# ancestors up to /workspaces — narrower than the usual wildcard, and it covers the case
+# where the mount root is the repo root.
 d="$PWD"
 while [ "$d" != "/" ] && [ "$d" != "/workspaces" ]; do
   git config --global --add safe.directory "$d"

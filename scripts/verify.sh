@@ -34,7 +34,21 @@ expect_cmd_fails() { # name command
   fi
 }
 
-MOUNTS="/go/pkg/mod /home/vscode/.cache/go-build /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
+LANG_DETECTED="$(grep -o '"name"[[:space:]]*:[[:space:]]*"[a-z]*-pi"' "$WS/.devcontainer/devcontainer.json" \
+                  | grep -o '[a-z]*-pi' | sed 's/-pi$//')"
+
+case "$LANG_DETECTED" in
+  go)
+    MOUNTS="/go/pkg/mod /home/vscode/.cache/go-build /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
+    ;;
+  java)
+    MOUNTS="/home/vscode/.m2/repository /home/vscode/.gradle /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
+    ;;
+  *)
+    echo "ERROR: cannot determine language from $WS/.devcontainer/devcontainer.json" >&2
+    exit 1
+    ;;
+esac
 
 # Container ID via the container's own hostname — avoids brittle label filtering.
 CID="$(inc 'cat /etc/hostname' | tr -d '\r\n')"
@@ -50,8 +64,14 @@ done
 # V5 — capability ceiling. Measured on the process pi's tools actually run as (vscode,
 # uid 1000), not on root: a non-root process holds no effective capabilities at all, so
 # CapEff proves nothing on its own. CapBnd is the ceiling that survives any setuid
-# transition, and it is where the --cap-drop=ALL is visible (spec F1).
-expect_match "V5a capability ceiling" '^CapBnd:[[:space:]]+0000000000080000$' 'grep CapBnd /proc/self/status'
+# transition, and it is where the --cap-drop=ALL is visible (spec F1). The expected value
+# differs by language: Go's image metadata forces SYS_PTRACE back in (F1); Java's does not
+# (spec finding F19), so the ceiling there is fully empty.
+if [ "$LANG_DETECTED" = go ]; then
+  expect_match "V5a capability ceiling" '^CapBnd:[[:space:]]+0000000000080000$' 'grep CapBnd /proc/self/status'
+else
+  expect_match "V5a capability ceiling" '^CapBnd:[[:space:]]+0000000000000000$' 'grep CapBnd /proc/self/status'
+fi
 expect_match "V5b no effective caps"  '^CapEff:[[:space:]]+0000000000000000$' 'grep CapEff /proc/self/status'
 
 # V6 — hardening verified negatively: privilege escalation must not work (spec F4)
@@ -79,7 +99,9 @@ expect_match "V1 pi version" "^${PI_VERSION_EXPECTED}$" 'pi --version'
 # V3 — a project tool is visible to a NON-INTERACTIVE shell, which is how pi's bash
 # tool runs commands. This is the check that catches a shims-not-in-PATH regression.
 expect_match "V3 project tool on PATH" '/shims/jq$' 'command -v jq'
-expect_match "V3 go still resolves"    '^go version' 'go version'
+if [ "$LANG_DETECTED" = go ]; then
+  expect_match "V3 go still resolves" '^go version' 'go version'
+fi
 
 # V2 — packages declared in the personal layer are installed
 expect_match "V2 packages installed" 'pi-quit-aliases' 'pi list'
@@ -94,13 +116,25 @@ expect_match "V3c personal tool jira" '/shims/jira$' 'command -v jira'
 expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/settings.json'
 expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
 
-# V4 — a real build works and populates the shared module cache
-expect_match "V4 GOMODCACHE"   '^/go/pkg/mod$' 'go env GOMODCACHE'
-# Bind mounts present host files as root-owned; without a safe.directory entry git refuses
-# to run and Go's VCS stamping fails the build.
-expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
-expect_match "V4 go build"     '^ok$'          'go mod tidy >/dev/null 2>&1 && go build ./... && echo ok'
-expect_match "V4 cache filled" '^yes$'         '[ -d /go/pkg/mod/rsc.io ] && echo yes || echo no'
+# V4 — a real build works and populates the shared dependency cache. Bind mounts present
+# host files as root-owned; without a safe.directory entry git refuses to run.
+if [ "$LANG_DETECTED" = go ]; then
+  expect_match "V4 GOMODCACHE"   '^/go/pkg/mod$' 'go env GOMODCACHE'
+  expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
+  expect_match "V4 go build"     '^ok$'          'go mod tidy >/dev/null 2>&1 && go build ./... && echo ok'
+  expect_match "V4 cache filled" '^yes$'         '[ -d /go/pkg/mod/rsc.io ] && echo yes || echo no'
+else
+  expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
+  expect_match "V4 mvn build"    '^ok$'          'mvn -q -B compile && echo ok'
+  expect_match "V4 cache filled" '^yes$' \
+    '[ -d /home/vscode/.m2/repository/org/apache/commons ] && echo yes || echo no'
+  # Gradle gets a shim-reachability check only, not a full build: both build tools ship in
+  # the image (spec decision J5), only one gets a maintained build fixture. Gradle (like
+  # Maven) is provided by the java devcontainer feature via SDKMAN, not by mise, so it is
+  # not under .../shims/ the way jq/yq are — reachability from a non-interactive shell is
+  # what this check proves, not the specific provisioning mechanism.
+  expect_match "V4c gradle reachable" '/gradle$' 'command -v gradle'
+fi
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

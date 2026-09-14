@@ -7,9 +7,23 @@ where a piece of configuration belongs, this table answers it.
 
 | Layer | Location | Contents | Owner |
 |---|---|---|---|
-| Base | `.devcontainer/` in the project | Go image, Node feature, mise feature, pi installation, hardening | this template |
+| Base | `.devcontainer/` in the project | language image (Go or Java), Node feature, mise feature, pi installation, hardening | this template |
 | Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
 | Project | committed in the project repo | `mise.toml`, `.pi/settings.json`, `AGENTS.md` | the team |
+
+### Template layout
+
+```
+templates/
+  _shared/.devcontainer/   install-pi.sh, post-create.sh, sync-personal.js — language-independent
+  go/.devcontainer/        Dockerfile, devcontainer.json — Go-specific
+  java/.devcontainer/      Dockerfile, devcontainer.json — Java-specific
+```
+
+`init-project.sh` copies `_shared` first, then the requested language template over it, into
+the target project's `.devcontainer/`. A language template's `devcontainer.json` must set
+`"name": "<lang>-pi"` — this is how `init-project.sh --update` and `scripts/verify.sh` detect
+which language a project is running, without asking again.
 
 Two properties make this work:
 
@@ -51,6 +65,8 @@ ten-second and a five-minute container rebuild:
 |---|---|---|
 | `pi-dc-gomod` | `/go/pkg/mod` | Go module cache |
 | `pi-dc-gobuild` | `~/.cache/go-build` | Go build cache |
+| `pi-dc-m2` | `/home/vscode/.m2/repository` | Maven dependency cache (Java only) |
+| `pi-dc-gradle` | `/home/vscode/.gradle` | Gradle dependency/build cache (Java only) |
 | `pi-dc-mise` | `~/.local/share/mise` | downloaded tools |
 
 Per project, named after the workspace folder: these hold state, and state should not leak
@@ -77,6 +93,12 @@ volume, add its directory there too.
 
 Known limitation: two projects whose folders share a basename share the "per project"
 volumes. Rename one, or give it explicit volume names.
+
+Known limitation: `pi-dc-mise` is shared by every project **and both languages**. The risk
+window is `postCreateCommand`'s `mise install`/`mise reshim`, which writes into this volume —
+not simply having multiple containers running, which is fine. Do not create or rebuild two
+containers at the same time; create or rebuild them one after another. Once a container has
+finished its `postCreateCommand`, running it alongside others is unproblematic.
 
 ## Lifecycle
 

@@ -1,5 +1,20 @@
-test/fixture-go/.devcontainer/
-test/fixture-go/.pi/
+# test/fixture-*/.devcontainer/ IS tracked (unlike a real adopted project's .devcontainer,
+# these fixtures' whole point is that test/fixtures.test.sh can diff their tracked content
+# against templates/<lang>/.devcontainer/ from a fresh clone). Only the two paths a real
+# `devcontainer up` writes at runtime are excluded: the personal-layer copy and the CLI's own
+# lock file, neither of which init-project.sh produces.
+test/fixture-*/.devcontainer/.personal/
+test/fixture-*/.devcontainer/devcontainer-lock.json
+test/fixture-*/.pi/
 test/fixture-go/go.sum
 test/fixture-go/fixture
+test/fixture-java/target/
 .devcontainer/.personal/
+
+# Planning artifacts from the brainstorming/writing-plans skills stay local, not in the repo.
+# This does not affect the two files from 2026-09-10 already tracked before this rule existed
+# (git ignores never untrack an already-tracked path).
+docs/superpowers/
+
+# subagent-driven-development scratch workspace (ledger, briefs, review packages)
+.superpowers/

@@ -1,8 +1,8 @@
 # pi-devcontainer
 
 A VS Code dev container that runs the [pi coding agent](https://pi.dev) in a lightly
-hardened, non-root Linux environment, without restricting anything pi can do. The first
-target environment is Go.
+hardened, non-root Linux environment, without restricting anything pi can do. Go and Java
+are supported as equal, independently maintained targets.
 
 The agent gets a real toolchain and a workspace it can write to. It does not get your host
 filesystem, your SSH keys, your other repositories, or your pi credentials. Adding a new CLI
@@ -22,10 +22,14 @@ tool is one line and no image rebuild, which matters more than it sounds: pi has
 ```bash
 git clone https://github.com/zorak1103/pi-devcontainer
 cd pi-devcontainer
-./scripts/init-project.sh /path/to/your/go-project
+./scripts/init-project.sh go /path/to/your/go-project     # or: java /path/to/your/java-project
 ```
 
 (Windows: run these in Git Bash, not PowerShell or cmd, since the scripts are `.sh` files.)
+
+Already using this template? `init-project.sh <dir>` is now `init-project.sh <go|java> <dir>`
+— the language argument became mandatory when Java support was added. `--update` is
+unaffected: it reads the language back out of your project's existing `devcontainer.json`.
 
 Add the two lines the script prints to your project's `.gitignore`, set your API key once
 (see [docs/setup-windows.md](docs/setup-windows.md); on Windows this needs a VS Code
@@ -45,7 +49,7 @@ still comes up, with pi's defaults.
 
 | Layer | Lives in | Holds |
 |---|---|---|
-| Base | `devcontainer.json` in your project | Go image, Node, mise, pi, the hardening flags |
+| Base | `devcontainer.json` in your project | language image (Go or Java), Node, mise, pi, the hardening flags — see [architecture.md](docs/architecture.md) |
 | Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, MCP servers, Claude plugins, your tools, your global `AGENTS.md` |
 | Project | committed in the repo | project toolchain, `AGENTS.md`, project pi settings |
 
@@ -55,12 +59,13 @@ inside and untouched outside. Details in [docs/architecture.md](docs/architectur
 ## Verifying an installation
 
 ```bash
-./scripts/verify.sh /path/to/your/go-project
+./scripts/verify.sh /path/to/your/project    # Go or Java, detected from its devcontainer.json
 ```
 
-30 checks against the live container: pi's version, the packages, tools reachable from a
-*non-interactive* shell, a real Go build, the capability ceiling, that `sudo` is refused,
-that the API key is absent from `docker inspect`, and that every volume is writable.
+~30 checks against the live container: pi's version, the packages, tools reachable from a
+*non-interactive* shell, a real build (`go build` or `mvn compile`), the capability ceiling,
+that `sudo` is refused, that the API key is absent from `docker inspect`, and that every
+volume is writable.
 
 `verify.sh` deliberately makes **no model call**. One test is therefore manual:
 

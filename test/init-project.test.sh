@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Test: init-project.sh copies the template and reports the gitignore entries.
+# Test: init-project.sh copies the right template for the requested language, refuses bad
+# input, and --update refreshes an existing install without needing the language repeated.
 set -uo pipefail
 
 TARGET="$(mktemp -d)"
@@ -8,7 +9,7 @@ trap 'rm -rf "$TARGET"' EXIT
 fail=0
 check() { if [ "$2" = "$3" ]; then echo "  PASS  $1"; else echo "  FAIL  $1: expected '$3', got '$2'"; fail=1; fi; }
 
-out="$(bash scripts/init-project.sh "$TARGET" 2>&1)"
+out="$(bash scripts/init-project.sh go "$TARGET" 2>&1)"
 rc=$?
 
 check "exit status" "$rc" "0"
@@ -23,12 +24,24 @@ else
 fi
 
 # Refuses to clobber an existing configuration
-bash scripts/init-project.sh "$TARGET" >/dev/null 2>&1
+bash scripts/init-project.sh go "$TARGET" >/dev/null 2>&1
 if [ $? -ne 0 ]; then echo "  PASS  refuses to overwrite"; else echo "  FAIL  overwrote existing config"; fail=1; fi
 
 # Rejects a target that does not exist
-bash scripts/init-project.sh "$TARGET/does-not-exist" >/dev/null 2>&1
+bash scripts/init-project.sh go "$TARGET/does-not-exist" >/dev/null 2>&1
 if [ $? -ne 0 ]; then echo "  PASS  rejects missing target"; else echo "  FAIL  accepted missing target"; fail=1; fi
+
+# Rejects an unknown language
+UNKNOWN_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh rust "$UNKNOWN_TARGET" >/dev/null 2>&1
+if [ $? -ne 0 ]; then echo "  PASS  rejects unknown language"; else echo "  FAIL  accepted unknown language"; fail=1; fi
+rm -rf "$UNKNOWN_TARGET"
+
+# Rejects a missing language argument entirely (old one-argument form must not silently work)
+NOARG_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh "$NOARG_TARGET" >/dev/null 2>&1
+if [ $? -ne 0 ]; then echo "  PASS  rejects missing language argument"; else echo "  FAIL  accepted a bare target dir"; fail=1; fi
+rm -rf "$NOARG_TARGET"
 
 # --update rejects a target with no existing .devcontainer
 NOEXIST_TARGET="$(mktemp -d)"
@@ -36,11 +49,17 @@ bash scripts/init-project.sh --update "$NOEXIST_TARGET" >/dev/null 2>&1
 if [ $? -ne 0 ]; then echo "  PASS  --update rejects missing .devcontainer"; else echo "  FAIL  --update accepted missing .devcontainer"; fail=1; fi
 rm -rf "$NOEXIST_TARGET"
 
-# --update backs up a customized .devcontainer, then installs a fresh one
+# --update detects the language from the existing devcontainer.json; no argument needed for it
 echo '  "customization": "keep-me"' >> "$TARGET/.devcontainer/devcontainer.json"
 update_out="$(bash scripts/init-project.sh --update "$TARGET" 2>&1)"
 update_rc=$?
 check "--update exit status" "$update_rc" "0"
+
+if printf '%s' "$update_out" | grep -q '(go)'; then
+  echo "  PASS  --update reports the detected language"
+else
+  echo "  FAIL  --update did not report the detected language"; fail=1
+fi
 
 BAK="$(find "$TARGET" -maxdepth 1 -name '.devcontainer.bak-*' | head -n1)"
 if [ -n "$BAK" ]; then echo "  PASS  --update creates a backup"; else echo "  FAIL  --update created no backup"; fail=1; fi
@@ -62,5 +81,38 @@ if printf '%s' "$update_out" | grep -q 'customization'; then
 else
   echo "  FAIL  --update did not print a diff"; fail=1
 fi
+rm -rf "$TARGET"/.devcontainer.bak-*
+
+# --update refuses to guess when the name field is unrecognizable, rather than silently
+# replacing the template with the wrong language's
+BAD_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh go "$BAD_TARGET" >/dev/null 2>&1
+sed -i 's/"go-pi"/"mystery-pi"/' "$BAD_TARGET/.devcontainer/devcontainer.json"
+bash scripts/init-project.sh --update "$BAD_TARGET" >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "  PASS  --update refuses an unrecognizable name field"
+else
+  echo "  FAIL  --update guessed a language for an unrecognizable name field"; fail=1
+fi
+rm -rf "$BAD_TARGET"
+
+# Java template installs correctly too, including the shared files
+JAVA_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh java "$JAVA_TARGET" >/dev/null 2>&1
+check "java install exit status" "$?" "0"
+for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh post-create.sh; do
+  if [ -f "$JAVA_TARGET/.devcontainer/$f" ]; then echo "  PASS  java: copied $f"; else echo "  FAIL  java: missing $f"; fail=1; fi
+done
+if grep -q '"name": "java-pi"' "$JAVA_TARGET/.devcontainer/devcontainer.json"; then
+  echo "  PASS  java: devcontainer.json names itself java-pi"
+else
+  echo "  FAIL  java: devcontainer.json missing/wrong name field"; fail=1
+fi
+if grep -q 'FROM mcr.microsoft.com/devcontainers/java:21-bookworm' "$JAVA_TARGET/.devcontainer/Dockerfile"; then
+  echo "  PASS  java: Dockerfile FROM line correct"
+else
+  echo "  FAIL  java: Dockerfile FROM line wrong"; fail=1
+fi
+rm -rf "$JAVA_TARGET"
 
 exit $fail
