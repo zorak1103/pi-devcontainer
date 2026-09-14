@@ -3,3 +3,8 @@ test/fixture-go/.pi/
 test/fixture-go/go.sum
 test/fixture-go/fixture
 .devcontainer/.personal/
+
+# Planning artifacts from the brainstorming/writing-plans skills stay local, not in the repo.
+# This does not affect the two files from 2026-09-10 already tracked before this rule existed
+# (git ignores never untrack an already-tracked path).
+docs/superpowers/
