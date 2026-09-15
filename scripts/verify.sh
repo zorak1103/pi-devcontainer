@@ -114,6 +114,7 @@ expect_match "V3c personal tool jira" '/shims/jira$' 'command -v jira'
 
 # V2b — the personal layer landed where pi looks for it
 expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/settings.json'
+expect_match "V2d default model applied" '"z-ai/glm-5.3-flash"' 'cat ~/.pi/agent/settings.json'
 expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
 
 # V4 — a real build works and populates the shared dependency cache. Bind mounts present

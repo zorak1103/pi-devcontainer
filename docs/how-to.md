@@ -291,10 +291,28 @@ Already-working examples ship in [`personal/`](../personal/); copy what you want
 | `mise.toml` | personal CLI tools (`jq`, `gh`, ...), see [extending.md](extending.md#cli-tools) |
 | `skills/` | lands in `~/.pi/agent/skills/`, global across projects |
 | `AGENTS.md` | your own global context, merged with the project's `AGENTS.md` |
-| `settings.json` | pi settings: theme, packages, `defaultProjectTrust`, model thinking levels |
+| `settings.json` | pi settings: theme, packages, `defaultProjectTrust`, model thinking levels, startup default model |
 
 All of it is copied, not mounted, so editing the host file and rebuilding is the update
 mechanism; see [architecture.md](architecture.md#three-layers).
+
+## Change the startup default model
+
+The shipped [`personal/settings.json`](../personal/settings.json) pins the startup model with
+`defaultProvider`/`defaultModel` (currently `openrouter` / `z-ai/glm-5.3-flash`), so every new
+container starts on the same model instead of whatever pi would otherwise pick:
+
+```json
+{
+  "defaultProvider": "openrouter",
+  "defaultModel": "z-ai/glm-5.3-flash"
+}
+```
+
+Check `pi --list-models` for available provider/model IDs. This only sets the *startup*
+default — it is fully overridable per session with `/model` (Ctrl+L) or the `--model`/
+`--provider` CLI flags; pressing Ctrl+S in the `/model` picker rewrites these two keys to
+whatever model is highlighted at the time.
 
 ## Update an existing project's `.devcontainer`
 

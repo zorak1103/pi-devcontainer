@@ -1,6 +1,8 @@
 {
   "theme": "dark",
   "defaultProjectTrust": "always",
+  "defaultProvider": "openrouter",
+  "defaultModel": "z-ai/glm-5.3-flash",
   "packages": ["npm:pi-quit-aliases"],
   "modelThinkingLevels": { "anthropic/claude-sonnet-4-20250514": "high" }
 }
