@@ -13,7 +13,7 @@ fail=0
 # lines would only compare its first line here.
 field() { grep -o "\"$2\"[[:space:]]*:.*" "$1" | sed 's/,[[:space:]]*$//' | head -n1; }
 
-for key in runArgs PI_VERSION PI_CODING_AGENT_SESSION_DIR HISTFILE LANG COLORTERM \
+for key in runArgs PI_VERSION OPENSPEC_VERSION PI_CODING_AGENT_SESSION_DIR HISTFILE LANG COLORTERM \
            MISE_DATA_DIR MISE_GLOBAL_CONFIG_FILE MISE_TRUSTED_CONFIG_PATHS \
            ANTHROPIC_API_KEY initializeCommand onCreateCommand postCreateCommand; do
   g="$(field "$GO" "$key")"

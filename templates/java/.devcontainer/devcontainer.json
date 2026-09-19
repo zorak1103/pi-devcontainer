@@ -19,6 +19,7 @@
     "MISE_GLOBAL_CONFIG_FILE": "/home/vscode/.config/mise/config.toml",
     "MISE_TRUSTED_CONFIG_PATHS": "/workspaces",
     "PI_VERSION": "0.85.1",
+    "OPENSPEC_VERSION": "latest",
     "PI_CODING_AGENT_SESSION_DIR": "${containerWorkspaceFolder}/.pi/sessions",
     "HISTFILE": "/home/vscode/.history/.bash_history",
     "LANG": "C.UTF-8",
@@ -40,6 +41,6 @@
   ],
 
   "initializeCommand": ["node", ".devcontainer/sync-personal.js"],
-  "onCreateCommand": "bash .devcontainer/install-pi.sh",
+  "onCreateCommand": "bash .devcontainer/install-pi.sh && bash .devcontainer/install-openspec.sh",
   "postCreateCommand": "bash .devcontainer/post-create.sh"
 }

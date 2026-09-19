@@ -49,7 +49,7 @@ still comes up, with pi's defaults.
 
 | Layer | Lives in | Holds |
 |---|---|---|
-| Base | `devcontainer.json` in your project | language image (Go or Java), Node, mise, pi, the hardening flags — see [architecture.md](docs/architecture.md) |
+| Base | `devcontainer.json` in your project | language image (Go or Java), Node, mise, pi, [OpenSpec](https://openspec.dev), the hardening flags — see [architecture.md](docs/architecture.md) |
 | Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, MCP servers, Claude plugins, your tools, your global `AGENTS.md` |
 | Project | committed in the repo | project toolchain, `AGENTS.md`, project pi settings |
 

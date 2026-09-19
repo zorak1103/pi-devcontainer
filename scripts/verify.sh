@@ -96,6 +96,10 @@ expect_match "V8 user" '^vscode$' 'whoami'
 PI_VERSION_EXPECTED="$(grep -o '"PI_VERSION"[^,}]*' "$WS/.devcontainer/devcontainer.json" | grep -o '[0-9][0-9.]*')"
 expect_match "V1 pi version" "^${PI_VERSION_EXPECTED}$" 'pi --version'
 
+# V1b — the OpenSpec CLI is installed. OPENSPEC_VERSION floats on "latest" by default (unlike
+# PI_VERSION), so this checks for a plausible semver rather than an exact pin.
+expect_match "V1b openspec version" '^[0-9]+\.[0-9]+\.[0-9]+$' 'openspec --version'
+
 # V3 — a project tool is visible to a NON-INTERACTIVE shell, which is how pi's bash
 # tool runs commands. This is the check that catches a shims-not-in-PATH regression.
 expect_match "V3 project tool on PATH" '/shims/jq$' 'command -v jq'

@@ -7,7 +7,7 @@ where a piece of configuration belongs, this table answers it.
 
 | Layer | Location | Contents | Owner |
 |---|---|---|---|
-| Base | `.devcontainer/` in the project | language image (Go or Java), Node feature, mise feature, pi installation, hardening | this template |
+| Base | `.devcontainer/` in the project | language image (Go or Java), Node feature, mise feature, pi installation, OpenSpec installation, hardening | this template |
 | Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
 | Project | committed in the project repo | `mise.toml`, `.pi/settings.json`, `AGENTS.md` | the team |
 
@@ -109,7 +109,7 @@ is standalone so it can become a Dev Container Feature's `install.sh` without ed
 |---|---|---|---|
 | `initializeCommand` | `sync-personal.js` | on the **host**, before the container exists | copies `~/.pi/devcontainer/` to `.devcontainer/.personal/` in the workspace |
 | image build | `Dockerfile` | at build time | creates and chowns the volume mount points, puts the mise shims first on `PATH` |
-| `onCreateCommand` | `install-pi.sh` | in the container, once | checks for npm, installs the pinned pi version |
+| `onCreateCommand` | `install-pi.sh`, then `install-openspec.sh` | in the container, once | checks for npm, installs the pinned pi version, then the [OpenSpec](https://openspec.dev) CLI (`OPENSPEC_VERSION`, `latest` by default) |
 | `postCreateCommand` | `post-create.sh` | in the container, after that | applies the personal layer, fetches its declared pi packages, registers the git safe directory, runs `mise install` |
 
 `sync-personal.js` runs Node rather than a shell script because the devcontainer CLI ships

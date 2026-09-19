@@ -13,7 +13,7 @@ out="$(bash scripts/init-project.sh go "$TARGET" 2>&1)"
 rc=$?
 
 check "exit status" "$rc" "0"
-for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh post-create.sh; do
+for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh install-openspec.sh post-create.sh; do
   if [ -f "$TARGET/.devcontainer/$f" ]; then echo "  PASS  copied $f"; else echo "  FAIL  missing $f"; fail=1; fi
 done
 
@@ -100,7 +100,7 @@ rm -rf "$BAD_TARGET"
 JAVA_TARGET="$(mktemp -d)"
 bash scripts/init-project.sh java "$JAVA_TARGET" >/dev/null 2>&1
 check "java install exit status" "$?" "0"
-for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh post-create.sh; do
+for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh install-openspec.sh post-create.sh; do
   if [ -f "$JAVA_TARGET/.devcontainer/$f" ]; then echo "  PASS  java: copied $f"; else echo "  FAIL  java: missing $f"; fail=1; fi
 done
 if grep -q '"name": "java-pi"' "$JAVA_TARGET/.devcontainer/devcontainer.json"; then

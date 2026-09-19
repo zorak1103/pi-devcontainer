@@ -314,6 +314,41 @@ default — it is fully overridable per session with `/model` (Ctrl+L) or the `-
 `--provider` CLI flags; pressing Ctrl+S in the `/model` picker rewrites these two keys to
 whatever model is highlighted at the time.
 
+## Use OpenSpec
+
+[OpenSpec](https://openspec.dev) is a spec-driven workflow (`explore → propose → review →
+apply → archive`) that several AI coding tools support natively, pi among them. The CLI
+(`@fission-ai/openspec`) is preinstalled in every container this template builds
+(`install-openspec.sh`, part of the base layer), so no per-project or per-developer setup is
+needed to get the binary.
+
+What is per-project is wiring it into *this* project, since that writes files the project
+owns:
+
+1. Inside the container, once per project:
+
+   ```bash
+   openspec init --tools pi
+   ```
+
+   `--tools pi` skips the tool picker; drop it to pick interactively instead. This creates
+   `openspec/` (the spec/change folders) plus `.pi/skills/openspec-*` and
+   `.pi/prompts/opsx-*.md`. No further wiring is needed on pi's side: `.pi/skills/` and
+   `.pi/prompts/` are locations pi already discovers on its own (see
+   [extending.md](extending.md#pi-resources) and pi's own prompt-templates docs).
+
+2. Commit the result. It is project-layer content — team-shared workflow files, the same
+   category as `AGENTS.md` or `.pi/settings.json` — not something that belongs in
+   `.gitignore`.
+
+3. In your AI chat, start with `/openspec-explore <idea>` or `/opsx-propose <change>` (pi
+   loads both the skill and the prompt-template spelling; either invocation works).
+
+Updating: `openspec update` inside the project refreshes its generated skills/commands after
+a CLI upgrade — run it after a container rebuild picks up a newer `OPENSPEC_VERSION`. Since
+that variable defaults to `latest`, pin it in the project's `devcontainer.json` if you need a
+reproducible version across a team, the same pattern as `PI_VERSION`.
+
 ## Update an existing project's `.devcontainer`
 
 For a project that already adopted the template and now needs a newer version of it (new
