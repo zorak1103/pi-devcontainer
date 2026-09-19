@@ -27,31 +27,41 @@ requests the matching one automatically inside the container (`golang.Go` for Go
 
 ## The API key
 
-The container reads the key from the environment VS Code itself was launched with:
+The container reads keys from the environment VS Code itself was launched with. The
+template ships `remoteEnv` with several variables already wired up, so you only need to set
+the ones you actually use:
 
 ```jsonc
-"remoteEnv": { "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}" }
+"remoteEnv": {
+  "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+  "OPENROUTER_API_KEY": "${localEnv:OPENROUTER_API_KEY}",
+  "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}"
+}
 ```
 
-Set it once as a user environment variable:
+Set each one you need as a user environment variable, the same way, one `setx` per variable:
 
 ```cmd
 setx ANTHROPIC_API_KEY sk-ant-...
+setx OPENROUTER_API_KEY sk-or-...
+setx CONTEXT7_API_KEY <your-key>
 ```
 
-Restart VS Code fully, including any window already open, before the value takes effect.
+Restart VS Code fully, including any window already open, before the values take effect.
 `setx` writes to the registry and affects processes started afterwards. A VS Code that was
-already running when you ran it will pass an empty value into the container, and pi will ask
-you to log in with no indication why. `post-create.sh` prints a warning when the variable is
-empty, which is your signal that this happened.
+already running when you ran it will pass empty values into the container, and pi will ask
+you to log in with no indication why (for `ANTHROPIC_API_KEY`) or silently skip a provider or
+MCP server (for the others). `post-create.sh` prints a warning when `ANTHROPIC_API_KEY`
+specifically is empty, which is your signal that this happened.
 
-On Linux and macOS, export it from your shell profile and start VS Code from a shell that has
-it, or use your desktop environment's equivalent.
+On Linux and macOS, export each variable from your shell profile and start VS Code from a
+shell that has it, or use your desktop environment's equivalent.
 
-If `${localEnv:…}` is empty, nothing else breaks. The container comes up fine and only pi's
-authentication is missing.
+If `${localEnv:…}` is empty for a variable you do not use, nothing breaks: an unused
+`remoteEnv` entry just resolves to an empty string and is harmless. Only `ANTHROPIC_API_KEY`
+being empty is flagged by `post-create.sh`, since it is required for pi itself to work.
 
-For OpenRouter, another API-key provider, or a self-hosted/proxied endpoint, see
+For a provider not already listed here, or a self-hosted/proxied endpoint, see
 [providers.md](providers.md). For an MCP server's own credentials (a different kind of
 secret, same `remoteEnv` mechanism), see [how-to.md](how-to.md#add-an-mcp-server).
 

@@ -118,23 +118,21 @@ example: [Context7](https://context7.com/) (up-to-date library docs), added glob
    environment; nothing pi-specific needed on the server side.
 
 3. Get the secret into the container the same way as any other API key
-   ([setup-windows.md](setup-windows.md#the-api-key), [decisions.md#d1](decisions.md#d1--where-the-provider-credentials-live)):
-   add it to the **project's** `devcontainer.json`, since `remoteEnv` is project layer, not
-   personal layer:
-
-   ```jsonc
-   "remoteEnv": { "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}" }
-   ```
-
-   then, once per machine:
+   ([setup-windows.md](setup-windows.md#the-api-key), [decisions.md#d1](decisions.md#d1--where-the-provider-credentials-live)).
+   `CONTEXT7_API_KEY` is already wired up in the project's `devcontainer.json` `remoteEnv`
+   block (`remoteEnv` is project layer, not personal layer, so if you are working from an
+   older `.devcontainer` that predates this, add it there:
+   `"remoteEnv": { "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}" }`, next to the other
+   keys, then re-run `init-project.sh --update`). What remains is setting the value once per
+   machine:
 
    ```cmd
    setx CONTEXT7_API_KEY <your-key>
    ```
 
-   (restart VS Code fully; see setup-windows.md for why). Repeat the `remoteEnv` line in
-   every project that should reach that server, same as any other provider key: it is not
-   part of the personal layer and does not propagate on its own.
+   (restart VS Code fully; see setup-windows.md for why). For a provider key that is not
+   already in `remoteEnv`, add it the same way, in every project that should reach that
+   server: it is not part of the personal layer and does not propagate on its own.
 
 4. Rebuild. Run `/mcp` inside pi to confirm the server is registered.
 

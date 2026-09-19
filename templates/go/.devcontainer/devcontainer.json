@@ -22,7 +22,10 @@
   },
 
   "remoteEnv": {
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "GCP_API_KEY": "${localEnv:GCP_API_KEY}",
+    "OPENROUTER_API_KEY": "${localEnv:OPENROUTER_API_KEY}",
+    "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}"
   },
 
   "mounts": [

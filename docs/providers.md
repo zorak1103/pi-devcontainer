@@ -16,19 +16,12 @@ only a starting point.
 
 ## OpenRouter
 
-Add the key to `remoteEnv` in `devcontainer.json`, next to the Anthropic one:
-
-```jsonc
-"remoteEnv": {
-  "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
-  "OPENROUTER_API_KEY": "${localEnv:OPENROUTER_API_KEY}"
-}
-```
-
-Set the environment variable the same way as `ANTHROPIC_API_KEY`: `setx OPENROUTER_API_KEY
-sk-or-...` on Windows (a full VS Code restart is required, see setup-windows.md), or `export`
-from your shell profile on Linux and macOS. pi picks it up automatically; no further
-configuration is needed.
+`OPENROUTER_API_KEY` is already wired up in `remoteEnv` by default (see
+[setup-windows.md](setup-windows.md#the-api-key) for the full block this template ships).
+There is nothing to add to `devcontainer.json`; just set the environment variable the same
+way as `ANTHROPIC_API_KEY`: `setx OPENROUTER_API_KEY sk-or-...` on Windows (a full VS Code
+restart is required, see setup-windows.md), or `export` from your shell profile on Linux and
+macOS. pi picks it up automatically; no further configuration is needed.
 
 ## Other API-key providers
 
