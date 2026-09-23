@@ -147,7 +147,7 @@ elif [ "$LANG_DETECTED" = java ]; then
 else
   expect_match "V4b git usable"     'On branch|HEAD detached' 'git status'
   expect_match "V4 node runtime"    '^ok$'           'node -e "console.log(\"ok\")"'
-  expect_match "V4c mise reachable" '^mise [0-9]'    'mise --version'
+  expect_match "V4c mise reachable" '^[0-9]+\.[0-9]+\.[0-9]+'    'mise --version'
   expect_match "V4d git present"    '^git version'   'git --version'
 fi
 
