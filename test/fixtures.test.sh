@@ -24,5 +24,6 @@ check_fixture() {
 
 check_fixture go   test/fixture-go
 check_fixture java test/fixture-java
+check_fixture base test/fixture-base
 
 exit $fail

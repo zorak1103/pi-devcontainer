@@ -15,7 +15,7 @@ there.
 
 Install Docker Desktop and make sure it is running before opening the project. The container
 runs `linux/amd64`; on an ARM host Docker Desktop emulates, which works but is slow. Both the
-Go and Java base images also publish `arm64`, so changing the `FROM` line in
+Go and Java base images also publish `arm64`, as does `devcontainers/base:ubuntu`, so changing the `FROM` line in
 `.devcontainer/Dockerfile` is worth it there.
 
 ## VS Code

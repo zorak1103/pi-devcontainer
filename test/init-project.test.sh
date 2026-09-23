@@ -115,4 +115,29 @@ else
 fi
 rm -rf "$JAVA_TARGET"
 
+# Base template installs correctly too, including the shared files; it must NOT drag in
+# language-specific mounts or features.
+BASE_TARGET="$(mktemp -d)"
+bash scripts/init-project.sh base "$BASE_TARGET" >/dev/null 2>&1
+check "base install exit status" "$?" "0"
+for f in devcontainer.json Dockerfile sync-personal.js install-pi.sh install-openspec.sh post-create.sh; do
+  if [ -f "$BASE_TARGET/.devcontainer/$f" ]; then echo "  PASS  base: copied $f"; else echo "  FAIL  base: missing $f"; fail=1; fi
+done
+if grep -q '"name": "base-pi"' "$BASE_TARGET/.devcontainer/devcontainer.json"; then
+  echo "  PASS  base: devcontainer.json names itself base-pi"
+else
+  echo "  FAIL  base: devcontainer.json missing/wrong name field"; fail=1
+fi
+if grep -q 'FROM mcr.microsoft.com/devcontainers/base:ubuntu' "$BASE_TARGET/.devcontainer/Dockerfile"; then
+  echo "  PASS  base: Dockerfile FROM line correct"
+else
+  echo "  FAIL  base: Dockerfile FROM line wrong"; fail=1
+fi
+if grep -qE 'gomod|m2/repository|\.gradle|features/java' "$BASE_TARGET/.devcontainer/devcontainer.json" "$BASE_TARGET/.devcontainer/Dockerfile"; then
+  echo "  FAIL  base: carries language-specific mounts/features"; fail=1
+else
+  echo "  PASS  base: free of language-specific mounts/features"
+fi
+rm -rf "$BASE_TARGET"
+
 exit $fail

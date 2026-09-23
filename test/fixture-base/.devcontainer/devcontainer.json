@@ -1,13 +1,8 @@
 {
-  "name": "java-pi",
+  "name": "base-pi",
   "build": { "dockerfile": "Dockerfile" },
 
   "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "version": "none",
-      "installMaven": true,
-      "installGradle": true
-    },
     "ghcr.io/devcontainers/features/node:2": { "version": "22" },
     "ghcr.io/devcontainers-extra/features/mise:1": {}
   },
@@ -35,8 +30,6 @@
   },
 
   "mounts": [
-    "source=pi-dc-m2,target=/home/vscode/.m2/repository,type=volume",
-    "source=pi-dc-gradle,target=/home/vscode/.gradle,type=volume",
     "source=pi-dc-mise,target=/home/vscode/.local/share/mise,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-pinpm,target=/home/vscode/.pi/agent/npm,type=volume",
     "source=pi-dc-${localWorkspaceFolderBasename}-claudeplugins,target=/home/vscode/.pi/agent/pi-claude-marketplace,type=volume",

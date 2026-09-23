@@ -204,7 +204,7 @@ once in `templates/_shared/.devcontainer/` and must not be duplicated into the n
    `"name"` to `"<language>-pi"`. **This is load-bearing, not cosmetic:**
    `init-project.sh --update` and `scripts/verify.sh` both parse this field to detect which
    template a project uses, with no separate argument for it.
-3. Add the language to `scripts/init-project.sh`'s `case "${1:-}" in go|java)` validation.
+3. Add the language to `scripts/init-project.sh`'s `case "${1:-}" in go|java|base)` validation.
 4. Add a branch for the language to `scripts/verify.sh`'s `MOUNTS`/build-check `case`
    (mirroring the one for `go`/`java`), with a real build proof for the check that matters
    most (a compiler/build-tool invocation that populates the language's dependency cache).
@@ -218,3 +218,11 @@ once in `templates/_shared/.devcontainer/` and must not be duplicated into the n
    way Go states `go = "1.27"` and Java states `java = "21"` — most language version
    directives are minimums, not pins, and mise does not read them by default
    ([findings.md#f7](findings.md#f7--mise-does-not-read-gomod-by-default)).
+
+`templates/base/` is a worked example of a target **without** a build toolchain: it uses the
+official `devcontainers/base:ubuntu` image (which already ships git and zsh — nothing to
+retrofit), carries no language-specific volumes, and its `verify.sh` branch proves the three
+things every generated project leans on instead of a build: git, Node and mise run from a
+non-interactive shell. If you add another toolchain-less target, do the same rather than
+inventing a fake build step; a toolchain that comes through mise belongs in the project's
+`mise.toml` ([the project layer](#the-project-layer)), not in the Dockerfile.
