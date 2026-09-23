@@ -94,7 +94,7 @@ volume, add its directory there too.
 Known limitation: two projects whose folders share a basename share the "per project"
 volumes. Rename one, or give it explicit volume names.
 
-Known limitation: `pi-dc-mise` is shared by every project **and both languages**. The risk
+Known limitation: `pi-dc-mise` is shared by every project **and all three targets**. The risk
 window is `postCreateCommand`'s `mise install`/`mise reshim`, which writes into this volume —
 not simply having multiple containers running, which is fine. Do not create or rebuild two
 containers at the same time; create or rebuild them one after another. Once a container has

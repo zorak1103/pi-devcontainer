@@ -204,7 +204,7 @@ once in `templates/_shared/.devcontainer/` and must not be duplicated into the n
    `"name"` to `"<language>-pi"`. **This is load-bearing, not cosmetic:**
    `init-project.sh --update` and `scripts/verify.sh` both parse this field to detect which
    template a project uses, with no separate argument for it.
-3. Add the language to `scripts/init-project.sh`'s `case "${1:-}" in go|java)` validation.
+3. Add the language to `scripts/init-project.sh`'s `case "${1:-}" in go|java|base)` validation.
 4. Add a branch for the language to `scripts/verify.sh`'s `MOUNTS`/build-check `case`
    (mirroring the one for `go`/`java`), with a real build proof for the check that matters
    most (a compiler/build-tool invocation that populates the language's dependency cache).

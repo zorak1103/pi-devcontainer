@@ -47,7 +47,7 @@ project-specific edit to `devcontainer.json` from that diff is still manual; the
 merge. `install-pi.sh` is already written as a standalone script so the move to a Feature is
 mechanical.
 
-Adopting a project now names its language explicitly: `init-project.sh <go|java> <dir>`.
+Adopting a project now names its language explicitly: `init-project.sh <go|java|base> <dir>`.
 `--update` does not repeat it — it reads the language back out of the existing
 `devcontainer.json`'s `name` field, so a project that already exists never needs to state its
 language a second time.
@@ -115,6 +115,31 @@ projects pin `go` in `mise.toml` — shims come first on `PATH` and win.
 
 **Cost:** one more feature to resolve at build time; a few hundred extra megabytes for two
 build tools most Java projects only use one of.
+
+## D6c — Why there is a target without a toolchain
+
+**Chosen:** a third target, `base`, on the official `mcr.microsoft.com/devcontainers/base:ubuntu`
+image, with no language toolchain, no language-specific volumes, and no build proof beyond
+the checks every target needs anyway: git, Node, mise.
+
+Rejected: telling non-code projects (documentation, notes, pure pi work) to use the go or
+java template. Half of the projects this setup is for are toolchain-less; routing them
+through a language image would ship a gigabyte of unused toolchain, drag dead cache volumes
+along (`pi-dc-gomod`, `pi-dc-m2`), and give `verify.sh` a build proof that cannot honestly
+run. Also rejected: baking "common" CLI tools (gh, jq, ripgrep) into the template — the
+personal layer's `mise.toml` is the designated place for tools that follow you across
+projects, and a project's own tools belong in the project's `mise.toml`.
+
+git needs no provisioning decision: the base image ships it, the hardening posture does not
+touch it, and the per-ancestor `safe.directory` registration in `post-create.sh` already
+covers the bind-mounted workspace.
+
+Its capability ceiling was measured at all-zero CapBnd, like Java's — the base image forces
+nothing back, unlike Go's (F1) — and `verify.sh`'s V5a expectation encodes that measurement.
+
+**Cost:** a third template whose `containerEnv`/hooks must stay in sync (`templates.test.sh`
+enforces it); and a tempting soup-kitchen — every future "just one small default tool"
+fights against D4/extension.md's rule that tools live in `mise.toml` files, not templates.
 
 ## D7 — Delve and capabilities
 
