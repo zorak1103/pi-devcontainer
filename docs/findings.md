@@ -366,3 +366,34 @@ The same `mkdir -p ... && chown -R vscode:vscode ...` pattern from `templates/go
 every one of the seven mount points (`~/.m2/repository`, `~/.gradle`, `~/.local/share/mise`,
 `~/.pi/agent/npm`, `~/.pi/agent/pi-claude-marketplace`, `~/.config`, `~/.history`) came up
 owned by `vscode` and writable. No language-specific surprise here; the fix generalizes.
+
+## F21 — The preload `pi -p "noop"` wedges without a TTY, so it needs a timeout
+
+Observed during the base target's live verification (PR #2): with the terminal root being an
+automation client rather than VS Code, `postCreateCommand` never finished and
+`~/.gitconfig` (written later in `post-create.sh`) never appeared — while the personal layer,
+`pi update --extensions`, and the mise shims (earlier steps in the same script) were all
+already in place. Process inspection inside the wedged container:
+
+```
+vscode  246  bash .devcontainer/post-create.sh
+vscode  393  pi                    # the throwaway -p "noop" run, sleeping for 9+ minutes
+```
+
+Reproduction: run `devcontainer up` on a fixture from a client whose lifecycle hooks execute
+via `docker exec` without a TTY (an automation shell, CI). The `pi --offline --no-session
+-p "noop"` preload from F16 — the step that eagerly triggers pi-claude-marketplace's
+session-start hook — hangs until killed instead of exiting after the sync and the (expectedly
+failing) model call. A docker exec stream dying mid-run does not kill it either: on a later
+`up` against the same container the orphaned `pi` was still occupying its pipe minutes on.
+The same flow never wedges under VS Code's own container launch.
+
+Fix: `post-create.sh` wraps the preload in `timeout 300` (PR #3). A wedged preload now
+delays the create flow by at most five minutes instead of ending it, and the plugins still
+clone at the first real `pi` start as they always would (F14's behavior). Verified live: a
+recreated container showed the hang, rode it out, and completed creation with all 28
+applicable `verify.sh` checks passing.
+
+Related, measured in the same session: the base image (`mcr.microsoft.com/devcontainers/base:ubuntu`)
+behaves like Java's in F19 — an all-zero `CapBnd`, no `SYS_PTRACE` forced back — and all five
+of its mount points came up vscode-owned and writable, generalizing F8/F20 to the third target.
