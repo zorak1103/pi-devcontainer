@@ -110,8 +110,10 @@ if [ "$LANG_DETECTED" = go ]; then
   expect_match "V3 go still resolves" '^go version' 'go version'
 fi
 
-# V2 — packages declared in the personal layer are installed
-expect_match "V2 packages installed" 'pi-quit-aliases' 'pi list'
+# V2 — packages declared in the personal layer are installed. Currently empty (the last
+# package, pi-quit-aliases, was retired); this check is kept so a future personal-layer
+# package gets an acceptance check to grow into, the same way V3b/V3c pin concrete tools.
+expect_match "V2 packages installed" 'User packages|^$' 'pi list'
 
 # V3b — personal tools are on PATH in a non-interactive shell
 expect_match "V3b personal tool yq" '/shims/yq$' 'command -v yq'
@@ -121,7 +123,7 @@ expect_match "V3c personal tool jira" '/shims/jira$' 'command -v jira'
 
 # V2b — the personal layer landed where pi looks for it
 expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/settings.json'
-expect_match "V2d default model applied" '"z-ai/glm-5.3-flash"' 'cat ~/.pi/agent/settings.json'
+expect_match "V2d default model applied" '"z-ai/glm-5.3-flash' 'cat ~/.pi/agent/settings.json'
 expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
 
 # V4 — a real build works and populates the shared dependency cache. Base has no build

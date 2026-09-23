@@ -28,9 +28,13 @@ mkdir -p ~/.pi/agent ~/.pi/agent/skills ~/.config/mise "$PI_CODING_AGENT_SESSION
 # non-interactive run triggers that hook eagerly; the model call itself is expected to
 # fail here (no credentials needed for this) and is discarded. --offline skips pi's own
 # startup network checks but does not block the hook's git clone; --no-session avoids
-# leaving an empty session file behind.
+# leaving an empty session file behind. The timeout matters: measured runs showed this
+# step wedging indefinitely when stdin is not a TTY (hooks run through `docker exec`
+# during automated/CI container creation). A wedged preload must delay container
+# creation, not prevent it — after 5 minutes the create flow continues regardless, and
+# the plugins then clone at the first real `pi` start as they always would.
 [ -f "$P/claude-plugins.json" ] && \
-  { pi --offline --no-session -p "noop" >/dev/null 2>&1 || true; }
+  { timeout 300 pi --offline --no-session -p "noop" >/dev/null 2>&1 || true; }
 
 [ -n "${ANTHROPIC_API_KEY:-}" ] || \
   echo "WARNING: ANTHROPIC_API_KEY is empty — see docs/setup-windows.md"
