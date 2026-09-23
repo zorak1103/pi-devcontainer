@@ -44,6 +44,9 @@ case "$LANG_DETECTED" in
   java)
     MOUNTS="/home/vscode/.m2/repository /home/vscode/.gradle /home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
     ;;
+  base)
+    MOUNTS="/home/vscode/.local/share/mise /home/vscode/.pi/agent/npm /home/vscode/.pi/agent/pi-claude-marketplace /home/vscode/.config /home/vscode/.history"
+    ;;
   *)
     echo "ERROR: cannot determine language from $WS/.devcontainer/devcontainer.json" >&2
     exit 1
@@ -121,14 +124,16 @@ expect_match "V2b settings applied" '"defaultProjectTrust"' 'cat ~/.pi/agent/set
 expect_match "V2d default model applied" '"z-ai/glm-5.3-flash"' 'cat ~/.pi/agent/settings.json'
 expect_match "V2c global context"   '# Environment'          'head -1 ~/.pi/agent/AGENTS.md'
 
-# V4 — a real build works and populates the shared dependency cache. Bind mounts present
-# host files as root-owned; without a safe.directory entry git refuses to run.
+# V4 — a real build works and populates the shared dependency cache. Base has no build
+# toolchain by design; its equivalent proof is that the three things every generated project
+# leans on — git, Node and mise — actually run. Bind mounts present host files as root-owned;
+# without a safe.directory entry git refuses to run.
 if [ "$LANG_DETECTED" = go ]; then
   expect_match "V4 GOMODCACHE"   '^/go/pkg/mod$' 'go env GOMODCACHE'
   expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
   expect_match "V4 go build"     '^ok$'          'go mod tidy >/dev/null 2>&1 && go build ./... && echo ok'
   expect_match "V4 cache filled" '^yes$'         '[ -d /go/pkg/mod/rsc.io ] && echo yes || echo no'
-else
+elif [ "$LANG_DETECTED" = java ]; then
   expect_match "V4b git usable"  'On branch|HEAD detached' 'git status'
   expect_match "V4 mvn build"    '^ok$'          'mvn -q -B compile && echo ok'
   expect_match "V4 cache filled" '^yes$' \
@@ -139,6 +144,11 @@ else
   # not under .../shims/ the way jq/yq are — reachability from a non-interactive shell is
   # what this check proves, not the specific provisioning mechanism.
   expect_match "V4c gradle reachable" '/gradle$' 'command -v gradle'
+else
+  expect_match "V4b git usable"     'On branch|HEAD detached' 'git status'
+  expect_match "V4 node runtime"    '^ok$'           'node -e "console.log(\"ok\")"'
+  expect_match "V4c mise reachable" '^mise [0-9]'    'mise --version'
+  expect_match "V4d git present"    '^git version'   'git --version'
 fi
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"

@@ -271,7 +271,7 @@ worked example ([F15](findings.md#f15--pi-claude-marketplace-clones-outside-the-
    on a path absent from the base image is created root-owned, and there is no `sudo` to fix
    it afterward ([F8](findings.md#f8--named-volumes-on-paths-absent-from-the-image-are-created-root-owned)).
 4. Add the path to `scripts/verify.sh`'s `MOUNTS` list for the relevant language (the list is
-   behind a `case "$LANG_DETECTED" in ...` now that both Go and Java exist) so the
+   behind a `case "$LANG_DETECTED" in ...` now that Go, Java and base exist) so the
    ownership/writability check covers it.
 5. Document it in `architecture.md`'s per-project volumes table.
 

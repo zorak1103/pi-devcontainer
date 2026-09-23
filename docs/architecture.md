@@ -7,7 +7,7 @@ where a piece of configuration belongs, this table answers it.
 
 | Layer | Location | Contents | Owner |
 |---|---|---|---|
-| Base | `.devcontainer/` in the project | language image (Go or Java), Node feature, mise feature, pi installation, OpenSpec installation, hardening | this template |
+| Base | `.devcontainer/` in the project | language image (Go, Java, or base), Node feature, mise feature, pi installation, OpenSpec installation, hardening | this template |
 | Personal | `~/.pi/devcontainer/` on the host | pi `settings.json`, `models.json`, `mcp.json`, `claude-plugins.json`, `mise.toml`, global `AGENTS.md`, optional `skills/` | one developer, across all projects |
 | Project | committed in the project repo | `mise.toml`, `.pi/settings.json`, `AGENTS.md` | the team |
 

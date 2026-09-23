@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copies a language-specific dev container template into a target project, or refreshes an
 # already-adopted one.
-#   scripts/init-project.sh <go|java> <target-dir>     first-time install
+#   scripts/init-project.sh <go|java|base> <target-dir>     first-time install
 #   scripts/init-project.sh --update <target-dir>        refresh an existing install
 set -euo pipefail
 
@@ -9,7 +9,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SHARED="$ROOT/templates/_shared/.devcontainer"
 
 usage() {
-  echo "usage: init-project.sh <go|java> <target-dir>" >&2
+  echo "usage: init-project.sh <go|java|base> <target-dir>" >&2
   echo "       init-project.sh --update <target-dir>" >&2
   exit 1
 }
@@ -26,9 +26,10 @@ detect_lang() {
   case "$name" in
     go-pi)   echo go ;;
     java-pi) echo java ;;
+    base-pi) echo base ;;
     *)
       echo "ERROR: cannot determine the template language from $1 (name: '${name:-<missing>}')" >&2
-      echo "       expected \"name\": \"go-pi\" or \"name\": \"java-pi\"" >&2
+      echo "       expected \"name\": \"go-pi\", \"java-pi\" or \"base-pi\"" >&2
       exit 1
       ;;
   esac
@@ -71,10 +72,10 @@ EOF
 fi
 
 case "${1:-}" in
-  go|java) TPL_LANG="$1" ;;
+  go|java|base) TPL_LANG="$1" ;;
   *) usage ;;
 esac
-TARGET="${2:?usage: init-project.sh <go|java> <target-dir>}"
+TARGET="${2:?usage: init-project.sh <go|java|base> <target-dir>}"
 
 [ -d "$TARGET" ] || { echo "ERROR: target directory does not exist: $TARGET" >&2; exit 1; }
 [ -e "$TARGET/.devcontainer" ] && {

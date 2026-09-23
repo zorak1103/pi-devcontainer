@@ -218,3 +218,11 @@ once in `templates/_shared/.devcontainer/` and must not be duplicated into the n
    way Go states `go = "1.27"` and Java states `java = "21"` — most language version
    directives are minimums, not pins, and mise does not read them by default
    ([findings.md#f7](findings.md#f7--mise-does-not-read-gomod-by-default)).
+
+`templates/base/` is a worked example of a target **without** a build toolchain: it uses the
+official `devcontainers/base:ubuntu` image (which already ships git and zsh — nothing to
+retrofit), carries no language-specific volumes, and its `verify.sh` branch proves the three
+things every generated project leans on instead of a build: git, Node and mise run from a
+non-interactive shell. If you add another toolchain-less target, do the same rather than
+inventing a fake build step; a toolchain that comes through mise belongs in the project's
+`mise.toml` ([the project layer](#the-project-layer)), not in the Dockerfile.

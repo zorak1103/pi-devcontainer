@@ -1,8 +1,8 @@
 # pi-devcontainer
 
 A VS Code dev container that runs the [pi coding agent](https://pi.dev) in a lightly
-hardened, non-root Linux environment, without restricting anything pi can do. Go and Java
-are supported as equal, independently maintained targets.
+hardened, non-root Linux environment, without restricting anything pi can do. Go, Java and a
+language-agnostic base are supported as equal, independently maintained targets.
 
 The agent gets a real toolchain and a workspace it can write to. It does not get your host
 filesystem, your SSH keys, your other repositories, or your pi credentials. Adding a new CLI
@@ -23,11 +23,16 @@ tool is one line and no image rebuild, which matters more than it sounds: pi has
 git clone https://github.com/zorak1103/pi-devcontainer
 cd pi-devcontainer
 ./scripts/init-project.sh go /path/to/your/go-project     # or: java /path/to/your/java-project
+                                                          # or: base /path/to/your/project
 ```
 
 (Windows: run these in Git Bash, not PowerShell or cmd, since the scripts are `.sh` files.)
 
-Already using this template? `init-project.sh <dir>` is now `init-project.sh <go|java> <dir>`
+`base` is for projects without a build toolchain of their own — documentation, notes, pure
+pi projects. It ships git and nothing language-specific; anything the project does need goes
+into the project's `mise.toml` (Python, Rust, ...), see [docs/extending.md](docs/extending.md).
+
+Already using this template? `init-project.sh <dir>` is now `init-project.sh <go|java|base> <dir>`
 — the language argument became mandatory when Java support was added. `--update` is
 unaffected: it reads the language back out of your project's existing `devcontainer.json`.
 
@@ -49,7 +54,7 @@ still comes up, with pi's defaults.
 
 | Layer | Lives in | Holds |
 |---|---|---|
-| Base | `devcontainer.json` in your project | language image (Go or Java), Node, mise, pi, [OpenSpec](https://openspec.dev), the hardening flags — see [architecture.md](docs/architecture.md) |
+| Base | `devcontainer.json` in your project | language image (Go, Java, or base), Node, mise, pi, [OpenSpec](https://openspec.dev), the hardening flags — see [architecture.md](docs/architecture.md) |
 | Personal | `~/.pi/devcontainer/` on your host | your pi settings, model/provider config, MCP servers, Claude plugins, your tools, your global `AGENTS.md` |
 | Project | committed in the repo | project toolchain, `AGENTS.md`, project pi settings |
 
@@ -59,7 +64,7 @@ inside and untouched outside. Details in [docs/architecture.md](docs/architectur
 ## Verifying an installation
 
 ```bash
-./scripts/verify.sh /path/to/your/project    # Go or Java, detected from its devcontainer.json
+./scripts/verify.sh /path/to/your/project    # Go, Java or base, detected from its devcontainer.json
 ```
 
 ~30 checks against the live container: pi's version, the packages, tools reachable from a
